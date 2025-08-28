@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { format, addMonths, endOfMonth } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import LocationCard from "./components/LocationCard";
 import { WillyWeatherService } from "./services/willyWeatherService";
@@ -178,7 +178,7 @@ const App: React.FC = () => {
             onChange={handleDateChange}
             min={format(new Date(), "yyyy-MM-dd")}
             max={format(
-              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              endOfMonth(addMonths(new Date(), 1)),
               "yyyy-MM-dd"
             )}
           />
