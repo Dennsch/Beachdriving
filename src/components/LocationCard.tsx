@@ -1,6 +1,8 @@
 import React from 'react';
 import { LocationData } from '../types';
 import { format } from 'date-fns';
+import PositiveImage from '../images/Positive.png';
+import NegativeImage from '../images/Negative.png';
 
 interface LocationCardProps {
   locationData: LocationData;
@@ -47,8 +49,21 @@ const LocationCard: React.FC<LocationCardProps> = ({ locationData, currentTime }
       
       {/* Safety Status */}
       <div className={`safety-status ${isSafe ? 'safe' : 'unsafe'}`}>
-        {isSafe ? '✅ SAFE TO DRIVE' : '⚠️ UNSAFE TO DRIVE'}
-        <div style={{ fontSize: '14px', marginTop: '5px', fontWeight: 'normal' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+          <img 
+            src={isSafe ? PositiveImage : NegativeImage} 
+            alt={isSafe ? 'Safe to drive' : 'Unsafe to drive'}
+            style={{ 
+              width: '60px', 
+              height: '60px', 
+              objectFit: 'contain'
+            }}
+          />
+        </div>
+        <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+          {isSafe ? 'SAFE TO DRIVE' : 'UNSAFE TO DRIVE'}
+        </div>
+        <div style={{ fontSize: '14px', marginTop: '5px', fontWeight: 'normal', textAlign: 'center' }}>
           {isSafe 
             ? 'Beach driving conditions are currently safe'
             : 'Too close to high tide - avoid beach driving'
