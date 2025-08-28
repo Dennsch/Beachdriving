@@ -39,30 +39,17 @@ export interface TideData {
   location: Location;
   forecasts: {
     tides: {
-      dataConfig: {
-        series: {
-          config: {
-            id: string;
-            color: string;
-            lineWidth: number;
-            lineFill: boolean;
-            lineRenderer: string;
-            showPoints: boolean;
-            pointFormatter: string;
-          };
-          yAxisDataMin: number;
-          yAxisDataMax: number;
-          yAxisMin: number;
-          yAxisMax: number;
-          groups: {
-            dateTime: number;
-            entries: {
-              dateTime: string;
-              height: number;
-            }[];
-          }[];
-          controlPoints: TidePoint[];
-        }[];
+      days: {
+        dateTime: string;
+        entries: TidePoint[];
+      }[];
+      units: {
+        height: string;
+      };
+      issueDateTime: string;
+      carousel: {
+        size: number;
+        start: number;
       };
     };
   };
@@ -98,6 +85,63 @@ export interface WeatherForecast {
           precipitationType: string;
         }[];
       }[];
+      units: {
+        temperature: string;
+      };
+      issueDateTime: string;
+    };
+  };
+}
+
+// Combined API response interface for weather and tides
+export interface CombinedForecastData {
+  location: Location;
+  forecasts: {
+    tides?: {
+      days: {
+        dateTime: string;
+        entries: TidePoint[];
+      }[];
+      units: {
+        height: string;
+      };
+      issueDateTime: string;
+      carousel: {
+        size: number;
+        start: number;
+      };
+    };
+    weather?: {
+      days: {
+        dateTime: string;
+        entries: {
+          dateTime: string;
+          precisCode: string;
+          precis: string;
+          precisOverlayCode: string | null;
+          night: boolean;
+          min: number;
+          max: number;
+          temp?: number;
+          apparentTemp?: number;
+          humidity?: number;
+          dewPoint?: number;
+          pressure?: number;
+          windSpeed?: number;
+          windDirection?: number;
+          windGust?: number;
+          cloudCover?: number;
+          uvIndex?: number;
+          visibility?: number;
+          precipitationRate?: number;
+          precipitationProbability?: number;
+          precipitationType?: string;
+        }[];
+      }[];
+      units: {
+        temperature: string;
+      };
+      issueDateTime: string;
     };
   };
 }
