@@ -12,7 +12,7 @@ A React TypeScript application that helps determine safe beach driving condition
 - **Comprehensive Weather Data**: Displays temperature, rain probability, wind conditions, and more
 - **Tide Information**: Shows high/low tide times and heights
 - **Safe Driving Windows**: Calculates optimal time periods for beach driving
-- **Date Selection**: View conditions for future dates (up to 7 days ahead)
+- **Date Selection**: View conditions for future dates (through the end of next month)
 - **Queensland Timezone**: All times displayed in Australian Eastern Time
 
 ## Safety Rules
