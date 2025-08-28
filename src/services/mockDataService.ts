@@ -1,5 +1,5 @@
 import { Location, WeatherData, TidePoint, WeatherForecast, TideData } from '../types';
-import { format, addHours, startOfDay } from 'date-fns';
+import { addHours, startOfDay } from 'date-fns';
 
 export class MockDataService {
   private static instance: MockDataService;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LocationData, TidePoint } from '../types';
+import { LocationData } from '../types';
 import { format } from 'date-fns';
 
 interface LocationCardProps {

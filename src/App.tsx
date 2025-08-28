@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import LocationCard from './components/LocationCard';
@@ -23,24 +23,7 @@ const App: React.FC = () => {
   const mockDataService = MockDataService.getInstance();
   const safetyService = SafetyService.getInstance();
 
-  // Initialize with current Queensland time
-  useEffect(() => {
-    const qldTime = utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE);
-    setCurrentTime(qldTime);
-    setSelectedDate(format(qldTime, 'yyyy-MM-dd'));
-    
-    // Test API connectivity
-    testApiConnection();
-  }, []);
-
-  // Fetch data when date changes
-  useEffect(() => {
-    if (selectedDate) {
-      fetchAllLocationData();
-    }
-  }, [selectedDate, usingMockData]);
-
-  const testApiConnection = async () => {
+  const testApiConnection = useCallback(async () => {
     try {
       const connected = await willyWeatherService.testConnection();
       setApiConnected(connected);
@@ -53,9 +36,9 @@ const App: React.FC = () => {
       setApiConnected(false);
       setUsingMockData(true);
     }
-  };
+  }, [willyWeatherService]);
 
-  const fetchAllLocationData = async () => {
+  const fetchAllLocationData = useCallback(async () => {
     setLoading(true);
     setError('');
     
@@ -139,7 +122,24 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, usingMockData, safetyService, mockDataService, willyWeatherService]);
+
+  // Initialize with current Queensland time
+  useEffect(() => {
+    const qldTime = utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE);
+    setCurrentTime(qldTime);
+    setSelectedDate(format(qldTime, 'yyyy-MM-dd'));
+    
+    // Test API connectivity
+    testApiConnection();
+  }, [testApiConnection]);
+
+  // Fetch data when date changes
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAllLocationData();
+    }
+  }, [selectedDate, usingMockData, fetchAllLocationData]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);

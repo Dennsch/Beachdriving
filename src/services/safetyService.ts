@@ -1,6 +1,6 @@
 import { TidePoint, SafeWindow } from '../types';
 import { format, addHours, subHours, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { utcToZonedTime } from 'date-fns-tz';
 
 const QUEENSLAND_TIMEZONE = 'Australia/Brisbane';
 const UNSAFE_HOURS_BEFORE_HIGH_TIDE = 2;
