@@ -133,7 +133,7 @@ export class WillyWeatherService {
         `Fetching combined forecast for location ${locationId}, date: ${date}`
       );
       const url = `${BASE_URL}/${API_KEY}/locations/${locationId}/weather.json`;
-      
+
       const headers = {
         "Content-Type": "application/json",
         "x-payload": JSON.stringify({
@@ -183,7 +183,7 @@ export class WillyWeatherService {
   ): Promise<WeatherForecast> {
     // Use the combined forecast and extract weather data
     const combinedData = await this.getCombinedForecast(locationId, date);
-    
+
     if (!combinedData.forecasts.weather) {
       throw new Error("No weather data available in combined forecast");
     }
@@ -199,9 +199,11 @@ export class WillyWeatherService {
   async getTideForecast(locationId: number, date: string): Promise<TideData> {
     // Use the combined forecast and extract tide data
     const combinedData = await this.getCombinedForecast(locationId, date);
-    
+
     if (!combinedData.forecasts.tides) {
-      throw new Error(`No tide data available for location ${locationId} from WillyWeather API`);
+      throw new Error(
+        `No tide data available for location ${locationId} from WillyWeather API`
+      );
     }
 
     return {
@@ -324,22 +326,6 @@ export class WillyWeatherService {
     };
   }
 
-  private validateWeatherData(data: any): WeatherForecast {
-    if (!data || !data.forecasts || !data.forecasts.weather) {
-      throw new Error("Invalid weather forecast structure");
-    }
-
-    return data as WeatherForecast;
-  }
-
-  private validateTideData(data: any): TideData {
-    if (!data || !data.forecasts || !data.forecasts.tides) {
-      throw new Error("Invalid tide data structure");
-    }
-
-    return data as TideData;
-  }
-
   private createWeatherData(entry: any): WeatherData {
     return {
       temperature: entry.temp || 0,
@@ -361,8 +347,6 @@ export class WillyWeatherService {
     };
   }
 
-
-
   getLocationIds(): { [key: string]: number } {
     return LOCATIONS;
   }
@@ -370,8 +354,6 @@ export class WillyWeatherService {
   getLocationNames(): string[] {
     return Object.keys(LOCATIONS);
   }
-
-
 
   // Method to search for locations by name
   async searchLocations(query: string): Promise<any[]> {
@@ -396,10 +378,13 @@ export class WillyWeatherService {
     try {
       console.log("Testing combined API format...");
       const testLocationId = 6720; // Bribie Island
-      const testDate = new Date().toISOString().split('T')[0]; // Today's date
-      
-      const combinedData = await this.getCombinedForecast(testLocationId, testDate);
-      
+      const testDate = new Date().toISOString().split("T")[0]; // Today's date
+
+      const combinedData = await this.getCombinedForecast(
+        testLocationId,
+        testDate
+      );
+
       console.log("Combined API test successful:", {
         location: combinedData.location?.name,
         hasWeather: !!combinedData.forecasts?.weather,
@@ -407,7 +392,7 @@ export class WillyWeatherService {
         weatherDays: combinedData.forecasts?.weather?.days?.length || 0,
         tideDays: combinedData.forecasts?.tides?.days?.length || 0,
       });
-      
+
       return true;
     } catch (error) {
       console.error("Combined API test failed:", error);
