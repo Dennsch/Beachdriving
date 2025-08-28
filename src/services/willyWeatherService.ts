@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 429) {
       throw new Error('API rate limit exceeded - please try again later');
     }
-    if (error.response?.status >= 500) {
+    if (error.response?.status && error.response.status >= 500) {
       throw new Error('Weather service temporarily unavailable');
     }
     throw error;
