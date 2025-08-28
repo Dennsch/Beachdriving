@@ -16,8 +16,61 @@ const LocationCard: React.FC<LocationCardProps> = ({ locationData, currentTime }
     return (
       <div className="location-card">
         <h2>{location.name}</h2>
-        <div className="error">
-          Error loading data: {error}
+        
+        {/* Error State with Negative Image */}
+        <div className="safety-status unsafe">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+            <img 
+              src={NegativeImage} 
+              alt="Data unavailable"
+              style={{ 
+                width: '60px', 
+                height: '60px', 
+                objectFit: 'contain',
+                opacity: 0.7
+              }}
+            />
+          </div>
+          <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+            DATA UNAVAILABLE
+          </div>
+          <div style={{ fontSize: '14px', marginTop: '5px', fontWeight: 'normal', textAlign: 'center' }}>
+            We couldn't fetch current conditions for this location
+          </div>
+        </div>
+
+        {/* Error Details */}
+        <div style={{ 
+          marginTop: '15px', 
+          padding: '15px', 
+          backgroundColor: '#fff5f5', 
+          borderRadius: '8px',
+          border: '1px solid #fed7d7'
+        }}>
+          <div style={{ 
+            fontSize: '14px', 
+            color: '#c53030',
+            marginBottom: '8px',
+            fontWeight: 'bold'
+          }}>
+            ⚠️ Unable to Load Beach Conditions
+          </div>
+          <div style={{ 
+            fontSize: '13px', 
+            color: '#742a2a',
+            lineHeight: '1.4'
+          }}>
+            {error}
+          </div>
+          <div style={{ 
+            fontSize: '12px', 
+            color: '#9c4221',
+            marginTop: '10px',
+            fontStyle: 'italic'
+          }}>
+            Please check your internet connection and try refreshing the page. 
+            For safety, avoid beach driving when conditions are unknown.
+          </div>
         </div>
       </div>
     );

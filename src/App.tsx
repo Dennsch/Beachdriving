@@ -178,6 +178,40 @@ const App: React.FC = () => {
               }}></div>
             </div>
           </div>
+        ) : locationsData.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '15px',
+            margin: '20px 0'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🌊</div>
+            <h3 style={{ color: '#e74c3c', marginBottom: '15px' }}>
+              No Beach Data Available
+            </h3>
+            <p style={{ color: '#7f8c8d', fontSize: '16px', lineHeight: '1.5' }}>
+              We're unable to fetch current beach conditions at this time.
+              <br />
+              Please check your internet connection and try again.
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: '20px',
+                padding: '12px 24px',
+                backgroundColor: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Refresh Page
+            </button>
+          </div>
         ) : (
           <div className="locations-grid">
             {locationsData.map((locationData, index) => (
