@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import LocationCard from './components/LocationCard';
 import { WillyWeatherService } from './services/willyWeatherService';
-import { MockDataService } from './services/mockDataService';
 import { SafetyService } from './services/safetyService';
 import { LocationData, Location } from './types';
 import './App.css';
@@ -16,36 +15,19 @@ const App: React.FC = () => {
   const [locationsData, setLocationsData] = useState<LocationData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [usingMockData, setUsingMockData] = useState<boolean>(false);
-  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
 
   const willyWeatherService = WillyWeatherService.getInstance();
-  const mockDataService = MockDataService.getInstance();
   const safetyService = SafetyService.getInstance();
 
-  const testApiConnection = useCallback(async () => {
-    try {
-      const connected = await willyWeatherService.testConnection();
-      setApiConnected(connected);
-      if (!connected) {
-        console.warn('API connection failed, will use mock data');
-        setUsingMockData(true);
-      }
-    } catch (error) {
-      console.error('API connection test error:', error);
-      setApiConnected(false);
-      setUsingMockData(true);
-    }
-  }, [willyWeatherService]);
+
 
   const fetchAllLocationData = useCallback(async () => {
     setLoading(true);
     setError('');
     
     try {
-      const dataService = usingMockData ? mockDataService : willyWeatherService;
-      const locationIds = dataService.getLocationIds();
-      const locationNames = dataService.getLocationNames();
+      const locationIds = willyWeatherService.getLocationIds();
+      const locationNames = willyWeatherService.getLocationNames();
       const targetDate = new Date(selectedDate + 'T12:00:00');
       const qldTargetDate = utcToZonedTime(targetDate, QUEENSLAND_TIMEZONE);
       
@@ -54,19 +36,19 @@ const App: React.FC = () => {
         
         try {
           // Fetch location details
-          const location = await dataService.getLocation(locationId);
+          const location = await willyWeatherService.getLocation(locationId);
           
           // Fetch weather and tide data
           const [weatherForecast, tideData] = await Promise.all([
-            dataService.getWeatherForecast(locationId, selectedDate),
-            dataService.getTideForecast(locationId, selectedDate)
+            willyWeatherService.getWeatherForecast(locationId, selectedDate),
+            willyWeatherService.getTideForecast(locationId, selectedDate)
           ]);
 
           // Extract current weather
-          const weather = dataService.extractCurrentWeather(weatherForecast, qldTargetDate);
+          const weather = willyWeatherService.extractCurrentWeather(weatherForecast, qldTargetDate);
           
           // Extract tide points
-          const tides = dataService.extractTidePoints(tideData);
+          const tides = willyWeatherService.extractTidePoints(tideData);
           
           // Calculate safety
           const isSafe = safetyService.isSafeToDrive(tides, qldTargetDate);
@@ -112,34 +94,24 @@ const App: React.FC = () => {
       console.error('Error fetching location data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
-      
-      // If using real API and it fails, try mock data
-      if (!usingMockData) {
-        console.log('Falling back to mock data due to API error');
-        setUsingMockData(true);
-        return; // This will trigger useEffect to refetch with mock data
-      }
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, usingMockData, safetyService, mockDataService, willyWeatherService]);
+  }, [selectedDate, safetyService, willyWeatherService]);
 
   // Initialize with current Queensland time
   useEffect(() => {
     const qldTime = utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE);
     setCurrentTime(qldTime);
     setSelectedDate(format(qldTime, 'yyyy-MM-dd'));
-    
-    // Test API connectivity
-    testApiConnection();
-  }, [testApiConnection]);
+  }, []);
 
   // Fetch data when date changes
   useEffect(() => {
     if (selectedDate) {
       fetchAllLocationData();
     }
-  }, [selectedDate, usingMockData, fetchAllLocationData]);
+  }, [selectedDate, fetchAllLocationData]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
@@ -150,11 +122,7 @@ const App: React.FC = () => {
     setCurrentTime(qldTime);
   };
 
-  const handleRetryWithRealData = () => {
-    setUsingMockData(false);
-    setApiConnected(null);
-    testApiConnection();
-  };
+
 
   const isToday = selectedDate === format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), 'yyyy-MM-dd');
 
@@ -167,42 +135,6 @@ const App: React.FC = () => {
           <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginTop: '10px' }}>
             Current Queensland Time: {format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), 'PPpp')}
           </div>
-          
-          {/* API Status Indicator */}
-          {apiConnected !== null && (
-            <div style={{ 
-              fontSize: '12px', 
-              marginTop: '10px',
-              padding: '8px 12px',
-              borderRadius: '20px',
-              backgroundColor: usingMockData ? 'rgba(255, 193, 7, 0.2)' : 'rgba(40, 167, 69, 0.2)',
-              color: usingMockData ? '#856404' : '#155724',
-              border: `1px solid ${usingMockData ? 'rgba(255, 193, 7, 0.5)' : 'rgba(40, 167, 69, 0.5)'}`
-            }}>
-              {usingMockData ? (
-                <>
-                  ⚠️ Using demo data - API unavailable
-                  <button 
-                    onClick={handleRetryWithRealData}
-                    style={{
-                      marginLeft: '10px',
-                      padding: '2px 8px',
-                      fontSize: '11px',
-                      backgroundColor: 'transparent',
-                      border: '1px solid currentColor',
-                      borderRadius: '10px',
-                      color: 'inherit',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Retry
-                  </button>
-                </>
-              ) : (
-                '✅ Live weather data connected'
-              )}
-            </div>
-          )}
         </header>
 
         <div className="date-picker-container">
@@ -224,36 +156,16 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {error && !usingMockData && (
+        {error && (
           <div className="error">
             <strong>Error:</strong> {error}
-            <div style={{ marginTop: '10px' }}>
-              <button 
-                onClick={() => setUsingMockData(true)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
-              >
-                Use Demo Data Instead
-              </button>
-            </div>
           </div>
         )}
 
         {loading ? (
           <div className="loading">
             <h3>Loading beach conditions...</h3>
-            <p>
-              {usingMockData 
-                ? 'Generating demo weather and tide data for Queensland beaches'
-                : 'Fetching live weather and tide data for Queensland beaches'
-              }
-            </p>
+            <p>Fetching live weather and tide data for Queensland beaches</p>
             <div style={{ marginTop: '20px' }}>
               <div style={{
                 width: '50px',
@@ -298,11 +210,6 @@ const App: React.FC = () => {
           <p style={{ marginBottom: '0', fontStyle: 'italic' }}>
             <strong>Disclaimer:</strong> This tool provides guidance only. Always check current local conditions, 
             weather warnings, and park regulations before beach driving. Drive at your own risk.
-            {usingMockData && (
-              <span style={{ color: '#856404', display: 'block', marginTop: '10px' }}>
-                <strong>Note:</strong> Currently displaying demo data for demonstration purposes.
-              </span>
-            )}
           </p>
         </div>
       </div>
