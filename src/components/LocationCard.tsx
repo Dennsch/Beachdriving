@@ -125,23 +125,68 @@ const LocationCard: React.FC<LocationCardProps> = ({ locationData, currentTime }
       </div>
 
       {/* Weather Information */}
-      {weather && (
-        <div className="weather-info">
-          <div className="weather-item">
-            <div className="label">Temperature</div>
-            <div className="value">{Math.round(weather.temperature)}°C</div>
+      {weather ? (
+        <>
+          <div className="weather-info">
+            <div className="weather-item">
+              <div className="label">Temperature</div>
+              <div className="value">{Math.round(weather.temperature)}°C</div>
+            </div>
+            {weather.apparentTemperature !== weather.temperature && (
+              <div className="weather-item">
+                <div className="label">Feels Like</div>
+                <div className="value">{Math.round(weather.apparentTemperature)}°C</div>
+              </div>
+            )}
+            {weather.precipitationProbability > 0 && (
+              <div className="weather-item">
+                <div className="label">Rain Chance</div>
+                <div className="value">{weather.precipitationProbability}%</div>
+              </div>
+            )}
+            {weather.windSpeed > 0 && (
+              <div className="weather-item">
+                <div className="label">Wind</div>
+                <div className="value">{Math.round(weather.windSpeed)} km/h</div>
+              </div>
+            )}
           </div>
-          <div className="weather-item">
-            <div className="label">Feels Like</div>
-            <div className="value">{Math.round(weather.apparentTemperature)}°C</div>
+
+          {/* Weather Summary */}
+          {weather.summary && (
+            <div style={{ 
+              marginTop: '15px', 
+              padding: '15px', 
+              backgroundColor: '#f0f8ff', 
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: '#2c3e50',
+              border: '1px solid #e3f2fd'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🌤️</span>
+                <strong>Current Conditions:</strong> {weather.summary}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ 
+          marginTop: '15px', 
+          padding: '15px', 
+          backgroundColor: '#fff8e1', 
+          borderRadius: '8px',
+          fontSize: '14px',
+          color: '#f57c00',
+          border: '1px solid #ffcc02',
+          textAlign: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>⚠️</span>
+            <strong>Weather data temporarily unavailable</strong>
           </div>
-          <div className="weather-item">
-            <div className="label">Rain Chance</div>
-            <div className="value">{weather.precipitationProbability}%</div>
-          </div>
-          <div className="weather-item">
-            <div className="label">Wind</div>
-            <div className="value">{Math.round(weather.windSpeed)} km/h</div>
+          <div style={{ marginTop: '5px', fontSize: '12px', opacity: 0.8 }}>
+            Tide and safety information is still accurate
           </div>
         </div>
       )}
@@ -187,20 +232,6 @@ const LocationCard: React.FC<LocationCardProps> = ({ locationData, currentTime }
           <p style={{ color: '#e74c3c', fontStyle: 'italic' }}>
             No safe driving windows available today due to tide conditions.
           </p>
-        </div>
-      )}
-
-      {/* Weather Summary */}
-      {weather && weather.summary && (
-        <div style={{ 
-          marginTop: '15px', 
-          padding: '10px', 
-          backgroundColor: '#f8f9fa', 
-          borderRadius: '5px',
-          fontSize: '14px',
-          color: '#6c757d'
-        }}>
-          <strong>Conditions:</strong> {weather.summary}
         </div>
       )}
     </div>
