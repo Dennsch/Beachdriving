@@ -67,7 +67,10 @@ const App: React.FC = () => {
           );
 
           return {
-            location: combinedData.location,
+            location: {
+              ...combinedData.location,
+              name: locationName, // Use hardcoded name instead of API name
+            },
             weather,
             tides,
             isSafe,
