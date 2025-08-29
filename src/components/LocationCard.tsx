@@ -122,13 +122,13 @@ const LocationCard: React.FC<LocationCardProps> = ({
 
       {/* Safety Status */}
       <div className={`safety-status ${isSafe ? "safe" : "unsafe"}`}>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
           <img
             src={isSafe ? PositiveImage : NegativeImage}
             alt={isSafe ? "Safe to drive" : "Unsafe to drive"}
             style={{
-              width: "80px",
-              height: "80px",
+              width: "100px",
+              height: "100px",
               objectFit: "contain",
               flexShrink: 0,
             }}
