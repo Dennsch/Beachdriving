@@ -27,10 +27,9 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor for logging
+// Add request interceptor for error handling
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -42,7 +41,6 @@ apiClient.interceptors.request.use(
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   (error: AxiosError) => {
@@ -87,7 +85,6 @@ export class WillyWeatherService {
   private getCachedData(key: string): any | null {
     const cached = this.cache.get(key);
     if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      console.log(`Cache hit for: ${key}`);
       return cached.data;
     }
     return null;
@@ -106,9 +103,7 @@ export class WillyWeatherService {
     if (cached) return cached;
 
     try {
-      console.log(
-        `Fetching combined forecast for location ${locationId}, date: ${date}`
-      );
+
       const url =
         process.env.NODE_ENV === "production"
           ? `${BASE_URL}/weather?locationId=${locationId}`
@@ -123,21 +118,9 @@ export class WillyWeatherService {
         }),
       };
 
-      console.log(`Combined API URL: ${url}`);
-      console.log("Headers:", headers);
-      console.log("Payload being sent:", JSON.parse(headers["x-payload"]));
+
 
       const response = await apiClient.get(url, { headers });
-      console.log(`Combined API response status:`, response.status);
-      console.log(`Combined API response data structure:`, {
-        hasData: !!response.data,
-        hasForecasts: !!response.data?.forecasts,
-        hasWeather: !!response.data?.forecasts?.weather,
-        hasTides: !!response.data?.forecasts?.tides,
-        weatherDaysCount: response.data?.forecasts?.weather?.days?.length || 0,
-        tideDaysCount: response.data?.forecasts?.tides?.days?.length || 0,
-        location: response.data?.location?.name || 'Unknown'
-      });
       
       // Log first weather entry if available for debugging
       if (response.data?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
@@ -215,8 +198,6 @@ export class WillyWeatherService {
     targetDateTime: Date
   ): WeatherData | null {
     try {
-      console.log("Extracting weather data for:", targetDateTime);
-
       if (!weatherForecast?.forecasts?.weather?.days) {
         console.warn("Invalid weather forecast structure - missing days array");
         return null;
@@ -224,8 +205,6 @@ export class WillyWeatherService {
 
       const targetTime = targetDateTime.getTime();
       const days = weatherForecast.forecasts.weather.days;
-      
-      console.log("Processing", days.length, "weather days");
 
       for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
         const day = days[dayIndex];
@@ -247,7 +226,6 @@ export class WillyWeatherService {
           
           // Expand the time window to 6 hours to be more flexible
           if (timeDiff <= 6 * 60 * 60 * 1000) {
-            console.log("✓ Found matching weather entry within 6 hours");
             const weatherData = this.createWeatherData(entry);
             return weatherData;
           }
@@ -255,7 +233,6 @@ export class WillyWeatherService {
       }
 
       // If no exact match, return the first valid entry of the first day
-      console.log("No time-matched entry found, using first available entry");
       if (days.length > 0 && days[0].entries && days[0].entries.length > 0) {
         const firstEntry = days[0].entries[0];
         const weatherData = this.createWeatherData(firstEntry);

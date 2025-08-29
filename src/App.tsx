@@ -33,11 +33,7 @@ const App: React.FC = () => {
       const locationDataPromises = locationNames.map(async (locationName) => {
         const locationId = locationIds[locationName];
 
-        console.log(`=== FETCHING DATA FOR ${locationName} ===`);
-        console.log("Location ID:", locationId);
-        console.log("Selected Date:", selectedDate);
-        console.log("Target Date:", targetDate);
-        console.log("QLD Target Date:", qldTargetDate);
+
 
         try {
           // Fetch combined weather and tide data (includes location info)
@@ -57,12 +53,7 @@ const App: React.FC = () => {
               )
             : null;
 
-          console.log(`Weather extraction result for ${locationName}:`, {
-            hasWeatherForecast: !!combinedData.forecasts.weather,
-            extractedWeather: weather,
-            weatherIsNull: weather === null,
-            targetDate: qldTargetDate
-          });
+
 
           // Extract tide points
           const tides = combinedData.forecasts.tides
@@ -151,39 +142,7 @@ const App: React.FC = () => {
     setCurrentTime(qldTime);
   };
 
-  const handleDebugAPI = async () => {
-    console.log("=== DEBUG API TEST ===");
-    try {
-      console.log("Testing API connection...");
-      const connectionTest = await willyWeatherService.testConnection();
-      console.log("Connection test result:", connectionTest);
 
-      console.log("Testing combined API...");
-      const combinedTest = await willyWeatherService.testCombinedAPI();
-      console.log("Combined API test result:", combinedTest);
-
-      // Test each location individually
-      const locationIds = willyWeatherService.getLocationIds();
-      const locationNames = willyWeatherService.getLocationNames();
-      
-      for (const locationName of locationNames) {
-        const locationId = locationIds[locationName];
-        console.log(`Testing location: ${locationName} (ID: ${locationId})`);
-        
-        try {
-          const combinedData = await willyWeatherService.getCombinedForecast(
-            locationId,
-            selectedDate
-          );
-          console.log(`${locationName} API response:`, combinedData);
-        } catch (err) {
-          console.error(`${locationName} API error:`, err);
-        }
-      }
-    } catch (error) {
-      console.error("Debug test failed:", error);
-    }
-  };
 
   const isToday =
     selectedDate ===
