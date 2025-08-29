@@ -112,7 +112,7 @@ export class WillyWeatherService {
       const headers = {
         "Content-Type": "application/json",
         "x-payload": JSON.stringify({
-          forecasts: ["tides", "weather"],
+          forecasts: ["tides", "weather","rainfallprobability","rainfall"],
           days: 1,
           startDate: date,
         }),
