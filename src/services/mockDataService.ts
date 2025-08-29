@@ -102,7 +102,11 @@ export class MockDataService {
               precipitationProbability: rainChance,
               precipitationType: rainChance > 20 ? 'rain' : 'none'
             }]
-          }]
+          }],
+          units: {
+            temperature: 'c'
+          },
+          issueDateTime: new Date().toISOString()
         }
       }
     };
@@ -126,30 +130,17 @@ export class MockDataService {
       location,
       forecasts: {
         tides: {
-          dataConfig: {
-            series: [{
-              config: {
-                id: 'tides',
-                color: '#2980b9',
-                lineWidth: 2,
-                lineFill: false,
-                lineRenderer: 'spline',
-                showPoints: true,
-                pointFormatter: 'time'
-              },
-              yAxisDataMin: 0,
-              yAxisDataMax: 2.5,
-              yAxisMin: 0,
-              yAxisMax: 2.5,
-              groups: [{
-                dateTime: dayStart.getTime(),
-                entries: tidePoints.map(point => ({
-                  dateTime: point.dateTime,
-                  height: point.height
-                }))
-              }],
-              controlPoints: tidePoints
-            }]
+          days: [{
+            dateTime: date + 'T00:00:00+10:00',
+            entries: tidePoints
+          }],
+          units: {
+            height: 'm'
+          },
+          issueDateTime: new Date().toISOString(),
+          carousel: {
+            size: 1,
+            start: 0
           }
         }
       }
@@ -228,11 +219,11 @@ export class MockDataService {
   }
 
   extractTidePoints(tideData: TideData): TidePoint[] {
-    if (!tideData?.forecasts?.tides?.dataConfig?.series?.[0]?.controlPoints) {
+    if (!tideData?.forecasts?.tides?.days?.[0]?.entries) {
       return [];
     }
 
-    return tideData.forecasts.tides.dataConfig.series[0].controlPoints;
+    return tideData.forecasts.tides.days[0].entries;
   }
 
   getLocationIds(): { [key: string]: number } {

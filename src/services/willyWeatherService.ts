@@ -5,15 +5,12 @@ import {
   TideData,
   TidePoint,
   WeatherData,
+  CombinedForecastData,
 } from "../types";
 
 const API_KEY = "ZWY2Y2FlZmZlNzQ0NzZhYzI4ZDNiNG";
-// Try different CORS proxy approaches
-const BASE_URL =
-  process.env.NODE_ENV === "development"
-    ? "https://api.allorigins.win/get?url=" +
-      encodeURIComponent("https://api.willyweather.com.au/v2")
-    : "https://api.willyweather.com.au/v2";
+// Use the proxy setup for API calls
+const BASE_URL = "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
@@ -47,21 +44,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     console.log(`API Response: ${response.status} ${response.config.url}`);
-
-    // Handle allorigins.win response format in development
-    if (
-      process.env.NODE_ENV === "development" &&
-      response.data &&
-      response.data.contents
-    ) {
-      try {
-        const parsedData = JSON.parse(response.data.contents);
-        response.data = parsedData;
-      } catch (e) {
-        console.warn("Failed to parse allorigins response:", e);
-      }
-    }
-
     return response;
   },
   (error: AxiosError) => {
@@ -138,91 +120,98 @@ export class WillyWeatherService {
     return location;
   }
 
-  async getWeatherForecast(
+  async getCombinedForecast(
     locationId: number,
     date: string
-  ): Promise<WeatherForecast> {
-    const cacheKey = this.getCacheKey(`weather_${locationId}`, { date });
+  ): Promise<CombinedForecastData> {
+    const cacheKey = this.getCacheKey(`combined_${locationId}`, { date });
     const cached = this.getCachedData(cacheKey);
     if (cached) return cached;
 
     try {
       console.log(
-        `Fetching weather forecast for location ${locationId}, date: ${date}`
+        `Fetching combined forecast for location ${locationId}, date: ${date}`
       );
       const url = `${BASE_URL}/${API_KEY}/locations/${locationId}/weather.json`;
-      const params = {
-        forecasts: "weather",
-        days: 1,
-        startDate: date,
-      };
-      console.log(`Weather API URL: ${url}`, "Params:", params);
 
-      const response = await apiClient.get(url, { params });
-      console.log(`Weather API response:`, response.data);
+      const headers = {
+        "Content-Type": "application/json",
+        "x-payload": JSON.stringify({
+          forecasts: ["tides", "weather"],
+          days: 1,
+          startDate: date,
+        }),
+      };
+
+      console.log(`Combined API URL: ${url}`, "Headers:", headers);
+
+      const response = await apiClient.get(url, { headers });
+      console.log(`Combined API response:`, response.data);
 
       if (!response.data || !response.data.forecasts) {
-        throw new Error("Invalid weather data received from API");
+        throw new Error("Invalid combined forecast data received from API");
       }
 
-      const weatherForecast = this.validateWeatherData(response.data);
-      this.setCachedData(cacheKey, weatherForecast);
-      return weatherForecast;
+      const combinedData = this.validateCombinedData(response.data);
+      this.setCachedData(cacheKey, combinedData);
+      return combinedData;
     } catch (error) {
       console.error(
-        `Error fetching weather for location ${locationId}:`,
+        `Error fetching combined forecast for location ${locationId}:`,
         error
       );
       if (error instanceof AxiosError) {
-        console.error("Weather API error details:", {
+        console.error("Combined API error details:", {
           status: error.response?.status,
           statusText: error.response?.statusText,
           data: error.response?.data,
           url: error.config?.url,
-          params: error.config?.params,
+          headers: error.config?.headers,
         });
       }
       throw new Error(
-        `Failed to fetch weather data: ${
+        `Failed to fetch combined forecast data: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
   }
 
+  async getWeatherForecast(
+    locationId: number,
+    date: string
+  ): Promise<WeatherForecast> {
+    // Use the combined forecast and extract weather data
+    const combinedData = await this.getCombinedForecast(locationId, date);
+
+    if (!combinedData.forecasts.weather) {
+      throw new Error("No weather data available in combined forecast");
+    }
+
+    return {
+      location: combinedData.location,
+      forecasts: {
+        weather: combinedData.forecasts.weather,
+      },
+    } as WeatherForecast;
+  }
+
   async getTideForecast(locationId: number, date: string): Promise<TideData> {
-    const cacheKey = this.getCacheKey(`tides_${locationId}`, { date });
-    const cached = this.getCachedData(cacheKey);
-    if (cached) return cached;
+    // Use the combined forecast and extract tide data
+    const combinedData = await this.getCombinedForecast(locationId, date);
 
-    console.log(
-      `Fetching tide forecast for location ${locationId}, date: ${date}`
-    );
-    const response = await apiClient.get(
-      `${BASE_URL}/${API_KEY}/locations/${locationId}/weather.json`,
-      {
-        params: {
-          forecasts: "tides",
-          days: 1,
-          startDate: date,
-        },
-      }
-    );
-
-    console.log(`Tide API response:`, response.data);
-
-    if (!response.data || !response.data.forecasts) {
-      throw new Error("Invalid tide data received from API");
+    if (!combinedData.forecasts.tides) {
+      throw new Error(
+        `No tide data available for location ${locationId} from WillyWeather API`
+      );
     }
 
-    // Check if tides data is available for this location
-    if (!response.data.forecasts.tides) {
-      throw new Error(`No tide data available for location ${locationId} from WillyWeather API`);
-    }
-
-    const tideData = this.validateTideData(response.data);
-    this.setCachedData(cacheKey, tideData);
-    return tideData;
+    return {
+      location: combinedData.location,
+      forecasts: {
+        tides: combinedData.forecasts.tides,
+      },
+    } as TideData;
   }
 
   extractCurrentWeather(
@@ -268,15 +257,16 @@ export class WillyWeatherService {
     try {
       const tidePoints: TidePoint[] = [];
 
-      if (!tideData?.forecasts?.tides?.dataConfig?.series) {
-        console.warn("Invalid tide data structure");
+      if (!tideData?.forecasts?.tides?.days) {
+        console.warn("Invalid tide data structure - no days array found");
         return [];
       }
 
-      for (const series of tideData.forecasts.tides.dataConfig.series) {
-        if (series.controlPoints && Array.isArray(series.controlPoints)) {
+      // Extract tide points from days array
+      for (const day of tideData.forecasts.tides.days) {
+        if (day.entries && Array.isArray(day.entries)) {
           // Validate each tide point
-          const validPoints = series.controlPoints.filter(
+          const validPoints = day.entries.filter(
             (point) =>
               point &&
               point.dateTime &&
@@ -305,6 +295,19 @@ export class WillyWeatherService {
     }
   }
 
+  private validateCombinedData(data: any): CombinedForecastData {
+    if (!data || !data.forecasts) {
+      throw new Error("Invalid combined forecast structure");
+    }
+
+    // Validate that we have at least one forecast type
+    if (!data.forecasts.weather && !data.forecasts.tides) {
+      throw new Error("No weather or tide data found in combined forecast");
+    }
+
+    return data as CombinedForecastData;
+  }
+
   private validateLocationData(data: any): Location {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid location data structure");
@@ -321,22 +324,6 @@ export class WillyWeatherService {
       lng: data.lng || 0,
       typeId: data.typeId || 0,
     };
-  }
-
-  private validateWeatherData(data: any): WeatherForecast {
-    if (!data || !data.forecasts || !data.forecasts.weather) {
-      throw new Error("Invalid weather forecast structure");
-    }
-
-    return data as WeatherForecast;
-  }
-
-  private validateTideData(data: any): TideData {
-    if (!data || !data.forecasts || !data.forecasts.tides) {
-      throw new Error("Invalid tide data structure");
-    }
-
-    return data as TideData;
   }
 
   private createWeatherData(entry: any): WeatherData {
@@ -360,8 +347,6 @@ export class WillyWeatherService {
     };
   }
 
-
-
   getLocationIds(): { [key: string]: number } {
     return LOCATIONS;
   }
@@ -369,8 +354,6 @@ export class WillyWeatherService {
   getLocationNames(): string[] {
     return Object.keys(LOCATIONS);
   }
-
-
 
   // Method to search for locations by name
   async searchLocations(query: string): Promise<any[]> {
@@ -387,6 +370,33 @@ export class WillyWeatherService {
     } catch (error) {
       console.error("Location search failed:", error);
       return [];
+    }
+  }
+
+  // Method to test the new combined API format
+  async testCombinedAPI(): Promise<boolean> {
+    try {
+      console.log("Testing combined API format...");
+      const testLocationId = 6720; // Bribie Island
+      const testDate = new Date().toISOString().split("T")[0]; // Today's date
+
+      const combinedData = await this.getCombinedForecast(
+        testLocationId,
+        testDate
+      );
+
+      console.log("Combined API test successful:", {
+        location: combinedData.location?.name,
+        hasWeather: !!combinedData.forecasts?.weather,
+        hasTides: !!combinedData.forecasts?.tides,
+        weatherDays: combinedData.forecasts?.weather?.days?.length || 0,
+        tideDays: combinedData.forecasts?.tides?.days?.length || 0,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Combined API test failed:", error);
+      return false;
     }
   }
 
@@ -414,13 +424,6 @@ export class WillyWeatherService {
           message: error.message,
           code: error.code,
         });
-
-        // Check for specific CORS or network issues
-        if (error.code === "ERR_NETWORK" || error.message.includes("CORS")) {
-          console.warn(
-            "CORS or network issue detected - this is expected in development without proper proxy setup"
-          );
-        }
       }
       return false;
     }
