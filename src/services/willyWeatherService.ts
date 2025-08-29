@@ -13,7 +13,7 @@ const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
-  Bribie: 6720, // Bribie Island, QLD (corrected ID)
+  Bribie: 20006, // Bribie Island, QLD 
   "Moreton Island": 37401, // Moreton Island, QLD
   Straddie: 19623, // North Stradbroke Island, QLD
 };
