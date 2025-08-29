@@ -216,12 +216,12 @@ export class MockDataService {
       icon: entry.precisCode ?? "unknown",
       summary: entry.precis ?? "No description available",
       // Mock rainfall data for testing
-      rainfallAmount: entry.precipitationProbability > 0 ? {
+      rainfallAmount: (entry.precipitationProbability ?? 0) > 0 ? {
         startRange: 0,
         endRange: 5,
         rangeDivide: "<",
         rangeCode: "0",
-        probability: entry.precipitationProbability
+        probability: entry.precipitationProbability ?? 0
       } : undefined,
       rainfallProbabilityDetailed: entry.precipitationProbability
     };
