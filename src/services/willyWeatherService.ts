@@ -13,7 +13,7 @@ const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
-  Bribie: 20006, // Bribie Island, QLD
+  Bribie: 20006, // Bribie Island, QLD 
   "Moreton Island": 37401, // Moreton Island, QLD
   Straddie: 19623, // North Stradbroke Island, QLD
 };
@@ -123,10 +123,26 @@ export class WillyWeatherService {
         }),
       };
 
-      console.log(`Combined API URL: ${url}`, "Headers:", headers);
+      console.log(`Combined API URL: ${url}`);
+      console.log("Headers:", headers);
+      console.log("Payload being sent:", JSON.parse(headers["x-payload"]));
 
       const response = await apiClient.get(url, { headers });
-      console.log(`Combined API response:`, response.data);
+      console.log(`Combined API response status:`, response.status);
+      console.log(`Combined API response data structure:`, {
+        hasData: !!response.data,
+        hasForecasts: !!response.data?.forecasts,
+        hasWeather: !!response.data?.forecasts?.weather,
+        hasTides: !!response.data?.forecasts?.tides,
+        weatherDaysCount: response.data?.forecasts?.weather?.days?.length || 0,
+        tideDaysCount: response.data?.forecasts?.tides?.days?.length || 0,
+        location: response.data?.location?.name || 'Unknown'
+      });
+      
+      // Log first weather entry if available for debugging
+      if (response.data?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
+        console.log("Sample weather entry:", response.data.forecasts.weather.days[0].entries[0]);
+      }
 
       if (!response.data || !response.data.forecasts) {
         throw new Error("Invalid combined forecast data received from API");
@@ -199,33 +215,54 @@ export class WillyWeatherService {
     targetDateTime: Date
   ): WeatherData | null {
     try {
+      console.log("Extracting weather data for:", targetDateTime);
+
       if (!weatherForecast?.forecasts?.weather?.days) {
-        console.warn("Invalid weather forecast structure");
+        console.warn("Invalid weather forecast structure - missing days array");
         return null;
       }
 
       const targetTime = targetDateTime.getTime();
       const days = weatherForecast.forecasts.weather.days;
+      
+      console.log("Processing", days.length, "weather days");
 
-      for (const day of days) {
-        if (!day.entries || !Array.isArray(day.entries)) continue;
+      for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+        const day = days[dayIndex];
 
-        for (const entry of day.entries) {
-          if (!entry.dateTime) continue;
+        if (!day.entries || !Array.isArray(day.entries)) {
+          console.warn(`Day ${dayIndex} has no valid entries`);
+          continue;
+        }
+
+        for (let entryIndex = 0; entryIndex < day.entries.length; entryIndex++) {
+          const entry = day.entries[entryIndex];
+
+          if (!entry.dateTime) {
+            continue;
+          }
 
           const entryTime = new Date(entry.dateTime).getTime();
-          // Find the closest entry within 3 hours
-          if (Math.abs(entryTime - targetTime) <= 3 * 60 * 60 * 1000) {
-            return this.createWeatherData(entry);
+          const timeDiff = Math.abs(entryTime - targetTime);
+          
+          // Expand the time window to 6 hours to be more flexible
+          if (timeDiff <= 6 * 60 * 60 * 1000) {
+            console.log("✓ Found matching weather entry within 6 hours");
+            const weatherData = this.createWeatherData(entry);
+            return weatherData;
           }
         }
       }
 
-      // If no exact match, return the first valid entry of the day
+      // If no exact match, return the first valid entry of the first day
+      console.log("No time-matched entry found, using first available entry");
       if (days.length > 0 && days[0].entries && days[0].entries.length > 0) {
-        return this.createWeatherData(days[0].entries[0]);
+        const firstEntry = days[0].entries[0];
+        const weatherData = this.createWeatherData(firstEntry);
+        return weatherData;
       }
 
+      console.warn("No valid weather entries found in any day");
       return null;
     } catch (error) {
       console.error("Error extracting current weather:", error);
@@ -289,24 +326,50 @@ export class WillyWeatherService {
   }
 
   private createWeatherData(entry: any): WeatherData {
-    return {
-      temperature: entry.temp ?? 0,
-      apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
-      humidity: entry.humidity ?? 0,
-      dewPoint: entry.dewPoint ?? 0,
-      pressure: entry.pressure ?? 0,
-      windSpeed: entry.windSpeed ?? 0,
-      windDirection: entry.windDirection ?? 0,
-      windGust: entry.windGust ?? entry.windSpeed ?? 0,
-      cloudCover: entry.cloudCover ?? 0,
-      uvIndex: entry.uvIndex ?? 0,
-      visibility: entry.visibility ?? 0,
-      precipitationRate: entry.precipitationRate ?? 0,
-      precipitationProbability: entry.precipitationProbability ?? 0,
-      precipitationType: entry.precipitationType ?? "none",
-      icon: entry.precisCode ?? "unknown",
-      summary: entry.precis ?? "No description available",
+    console.log("Creating weather data from entry:", {
+      dateTime: entry.dateTime,
+      availableFields: Object.keys(entry),
+      temp: entry.temp,
+      precis: entry.precis
+    });
+    
+    // Check for different possible field names
+    const temperature = entry.temp ?? entry.temperature ?? entry.min ?? entry.max ?? 0;
+    const apparentTemperature = entry.apparentTemp ?? entry.apparentTemperature ?? entry.feelsLike ?? temperature;
+    const windSpeed = entry.windSpeed ?? entry.wind_speed ?? entry.windSpeedKmh ?? 0;
+    const windDirection = entry.windDirection ?? entry.wind_direction ?? entry.windDirectionDeg ?? 0;
+    const windGust = entry.windGust ?? entry.wind_gust ?? entry.windGustKmh ?? windSpeed;
+    const precipitationProbability = entry.precipitationProbability ?? entry.precipitation_probability ?? entry.rainChance ?? 0;
+    const summary = entry.precis ?? entry.summary ?? entry.description ?? "No description available";
+    const icon = entry.precisCode ?? entry.icon ?? entry.code ?? "unknown";
+
+    const weatherData = {
+      temperature,
+      apparentTemperature,
+      humidity: entry.humidity ?? entry.relativeHumidity ?? 0,
+      dewPoint: entry.dewPoint ?? entry.dew_point ?? 0,
+      pressure: entry.pressure ?? entry.pressureHpa ?? entry.pressureMsl ?? 0,
+      windSpeed,
+      windDirection,
+      windGust,
+      cloudCover: entry.cloudCover ?? entry.cloud_cover ?? entry.cloudiness ?? 0,
+      uvIndex: entry.uvIndex ?? entry.uv_index ?? entry.uvi ?? 0,
+      visibility: entry.visibility ?? entry.visibilityKm ?? 0,
+      precipitationRate: entry.precipitationRate ?? entry.precipitation_rate ?? entry.rainRate ?? 0,
+      precipitationProbability,
+      precipitationType: entry.precipitationType ?? entry.precipitation_type ?? "none",
+      icon,
+      summary,
     };
+
+    console.log("Created weather data:", {
+      temperature: weatherData.temperature,
+      summary: weatherData.summary,
+      windSpeed: weatherData.windSpeed,
+      hasValidTemp: weatherData.temperature > 0
+    });
+    
+    return weatherData;
   }
 
   getLocationIds(): { [key: string]: number } {
