@@ -26,6 +26,7 @@ export class SafetyService {
       const tideTime = new Date(highTide.dateTime);
       const unsafeStart = subHours(tideTime, UNSAFE_HOURS_BEFORE_HIGH_TIDE);
       const unsafeEnd = addHours(tideTime, UNSAFE_HOURS_AFTER_HIGH_TIDE);
+      console.log(currentTime+" is within "+unsafeStart+" - "+unsafeEnd+": "+isWithinInterval(currentTime, { start: unsafeStart, end: unsafeEnd }))
       
       if (isWithinInterval(currentTime, { start: unsafeStart, end: unsafeEnd })) {
         return false;
