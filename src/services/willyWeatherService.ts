@@ -8,14 +8,14 @@ import {
 } from "../types";
 
 const API_KEY = "ZWY2Y2FlZmZlNzQ0NzZhYzI4ZDNiNG";
-// Use the proxy setup for API calls
-const BASE_URL = "https://api.willyweather.com.au/v2";
+// Use Vercel API routes for production, proxy for development
+const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
-  "Bribie Island": 6720, // Bribie Island, QLD
-  "Moreton Island": 20007, // Moreton Island, QLD
-  "North Stradbroke Island": 8624, // North Stradbroke Island, QLD
+  "Bribie Island": 20006, // Bribie Island, QLD
+  "Moreton Island": 37401, // Moreton Island, QLD
+  "North Stradbroke Island": 19623, // North Stradbroke Island, QLD
 };
 
 // Configure axios with timeout and retry logic
@@ -97,8 +97,6 @@ export class WillyWeatherService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-
-
   async getCombinedForecast(
     locationId: number,
     date: string
@@ -111,7 +109,10 @@ export class WillyWeatherService {
       console.log(
         `Fetching combined forecast for location ${locationId}, date: ${date}`
       );
-      const url = `${BASE_URL}/${API_KEY}/locations/${locationId}/weather.json`;
+      const url =
+        process.env.NODE_ENV === "production"
+          ? `${BASE_URL}/weather?locationId=${locationId}`
+          : `${BASE_URL}/${API_KEY}/locations/${locationId}/weather.json`;
 
       const headers = {
         "Content-Type": "application/json",
@@ -287,8 +288,6 @@ export class WillyWeatherService {
     return data as CombinedForecastData;
   }
 
-
-
   private createWeatherData(entry: any): WeatherData {
     return {
       temperature: entry.temp ?? 0,
@@ -322,12 +321,14 @@ export class WillyWeatherService {
   async searchLocations(query: string): Promise<any[]> {
     try {
       console.log(`Searching for locations: ${query}`);
-      const response = await apiClient.get(
-        `${BASE_URL}/${API_KEY}/search.json`,
-        {
-          params: { query },
-        }
-      );
+      const searchUrl =
+        process.env.NODE_ENV === "production"
+          ? `${BASE_URL}/search?query=${encodeURIComponent(query)}`
+          : `${BASE_URL}/${API_KEY}/search.json?query=${encodeURIComponent(
+              query
+            )}`;
+
+      const response = await apiClient.get(searchUrl);
       console.log("Search results:", response.data);
       return response.data || [];
     } catch (error) {
@@ -370,7 +371,10 @@ export class WillyWeatherService {
       console.log("Base URL:", BASE_URL);
       console.log("Environment:", process.env.NODE_ENV);
 
-      const testUrl = `${BASE_URL}/${API_KEY}/locations/6720.json`;
+      const testUrl =
+        process.env.NODE_ENV === "production"
+          ? `${BASE_URL}/location?locationId=6720`
+          : `${BASE_URL}/${API_KEY}/locations/6720.json`;
       console.log("Test URL:", testUrl);
 
       const response = await apiClient.get(testUrl);
