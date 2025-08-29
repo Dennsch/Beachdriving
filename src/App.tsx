@@ -145,58 +145,101 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <div className="container">
-        <header className="header">
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <header className="header" style={{ 
+          position: "relative", 
+          width: "100vw", 
+          marginLeft: "calc(-50vw + 50%)",
+          marginBottom: "-150px",
+          overflow: "hidden",
+          zIndex: 1
+        }}>
+          <div style={{ position: "relative" }}>
             <img
               src={BannerImage}
               alt="Queensland Beach Driving Safety"
               style={{
-                maxWidth: "100%",
+                width: "100%",
                 height: "auto",
-                borderRadius: "10px",
-                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                display: "block"
               }}
             />
-          </div>
-          <p
-            style={{
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6))",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              color: "white",
               textAlign: "center",
-              fontSize: "18px",
-              marginBottom: "10px",
-            }}
-          >
-            Check tide conditions for safe beach driving
-          </p>
-          <div
-            style={{
-              fontSize: "14px",
-              color: "rgba(255,255,255,0.8)",
-              textAlign: "center",
-            }}
-          >
-            Current Queensland Time:{" "}
-            {format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), "PPpp")}
+              padding: "20px"
+            }}>
+              <p style={{
+                fontSize: "1.2rem",
+                marginBottom: "20px",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.7)"
+              }}>
+                Check tide conditions for safe beach driving
+              </p>
+              
+              <div className="date-picker-container" style={{
+                backgroundColor: "rgba(255,255,255,0.9)",
+                padding: "15px 20px",
+                borderRadius: "10px",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                marginBottom: "15px"
+              }}>
+                <label htmlFor="date-picker" style={{ 
+                  color: "#2c3e50", 
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  display: "block"
+                }}>
+                  Select Date for Beach Conditions:
+                </label>
+                <input
+                  id="date-picker"
+                  type="date"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  min={format(new Date(), "yyyy-MM-dd")}
+                  max={format(endOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd")}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "5px",
+                    border: "1px solid #ddd",
+                    fontSize: "16px",
+                    width: "100%",
+                    maxWidth: "200px"
+                  }}
+                />
+                {isToday && (
+                  <div style={{ 
+                    fontSize: "12px", 
+                    color: "#27ae60", 
+                    marginTop: "5px",
+                    fontWeight: "bold"
+                  }}>
+                    Showing current conditions
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                fontSize: "14px",
+                color: "rgba(255,255,255,0.9)",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.7)"
+              }}>
+                Current Queensland Time:{" "}
+                {format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), "PPpp")}
+              </div>
+            </div>
           </div>
         </header>
-
-        <div className="date-picker-container">
-          <label htmlFor="date-picker">Select Date for Beach Conditions:</label>
-          <input
-            id="date-picker"
-            type="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-            min={format(new Date(), "yyyy-MM-dd")}
-            max={format(endOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd")}
-          />
-          {isToday && (
-            <div
-              style={{ fontSize: "12px", color: "#27ae60", marginTop: "5px" }}
-            >
-              Showing current conditions
-            </div>
-          )}
-        </div>
 
         {error && (
           <div className="error">
@@ -261,7 +304,11 @@ const App: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="locations-grid">
+          <div className="locations-grid" style={{
+            position: "relative",
+            zIndex: 2,
+            paddingTop: "150px"
+          }}>
             {locationsData.map((locationData, index) => (
               <LocationCard
                 key={`${locationData.location.name}-${index}`}
