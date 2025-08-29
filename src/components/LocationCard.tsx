@@ -168,10 +168,10 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 </div>
               </div>
             )}
-            {weather.precipitationProbability > 0 && (
+            {weather.rainfallAmount &&weather.rainfallAmount.probability && (
               <div className="weather-item">
                 <div className="label">Rain Chance</div>
-                <div className="value">{weather.precipitationProbability}%</div>
+                <div className="value">{weather.rainfallAmount.probability}%</div>
               </div>
             )}
             {weather.rainfallAmount && weather.rainfallAmount.probability > 0 ? (
