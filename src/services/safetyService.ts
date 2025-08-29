@@ -22,16 +22,27 @@ export class SafetyService {
   isSafeToDrive(tidePoints: TidePoint[], currentTime: Date): boolean {
     const highTides = tidePoints.filter(tide => tide.type === 'high');
     
+    console.log('=== SAFETY CHECK DEBUG ===');
+    console.log('Current time (QLD):', format(currentTime, 'yyyy-MM-dd HH:mm:ss'));
+    console.log('High tides count:', highTides.length);
+    
     for (const highTide of highTides) {
-      const tideTime = new Date(highTide.dateTime);
+      // Convert tide time to Queensland timezone to match currentTime
+      const tideTime = utcToZonedTime(new Date(highTide.dateTime), QUEENSLAND_TIMEZONE);
       const unsafeStart = subHours(tideTime, UNSAFE_HOURS_BEFORE_HIGH_TIDE);
       const unsafeEnd = addHours(tideTime, UNSAFE_HOURS_AFTER_HIGH_TIDE);
       
+      console.log(`High tide at: ${format(tideTime, 'yyyy-MM-dd HH:mm:ss')} (${highTide.height}m)`);
+      console.log(`Unsafe window: ${format(unsafeStart, 'HH:mm')} - ${format(unsafeEnd, 'HH:mm')}`);
+      console.log(`Is current time in unsafe window: ${isWithinInterval(currentTime, { start: unsafeStart, end: unsafeEnd })}`);
+      
       if (isWithinInterval(currentTime, { start: unsafeStart, end: unsafeEnd })) {
+        console.log('❌ UNSAFE - Current time is within unsafe window');
         return false;
       }
     }
     
+    console.log('✅ SAFE - Current time is outside all unsafe windows');
     return true;
   }
 
@@ -48,7 +59,7 @@ export class SafetyService {
       .filter(tide => tide.type === 'high')
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: utcToZonedTime(new Date(tide.dateTime), QUEENSLAND_TIMEZONE)
       }))
       .filter(tide => {
         // Include tides that might affect the target day
@@ -116,7 +127,7 @@ export class SafetyService {
       .filter(tide => tide.type === 'high')
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: utcToZonedTime(new Date(tide.dateTime), QUEENSLAND_TIMEZONE)
       }))
       .filter(tide => tide.dateTime > currentTime)
       .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
@@ -136,7 +147,7 @@ export class SafetyService {
     const sortedTides = tidePoints
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: utcToZonedTime(new Date(tide.dateTime), QUEENSLAND_TIMEZONE)
       }))
       .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
 
