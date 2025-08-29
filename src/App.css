@@ -1,6 +1,6 @@
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+  /* Remove background to allow banner image to show */
 }
 
 .container {
@@ -11,13 +11,11 @@
 
 .header {
   text-align: center;
+  margin-top:60px;
   margin-bottom: 30px;
   color: white;
-  background: rgba(255, 255, 255, 0.1);
   padding: 30px;
   border-radius: 15px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .header h1 {
