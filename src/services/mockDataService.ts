@@ -1,4 +1,4 @@
-import { Location, WeatherData, TidePoint, WeatherForecast, TideData } from '../types';
+import { Location, WeatherData, TidePoint, WeatherForecast, TideData, CombinedForecastData } from '../types';
 import { addHours, startOfDay } from 'date-fns';
 
 export class MockDataService {
@@ -192,12 +192,12 @@ export class MockDataService {
     );
   }
 
-  extractCurrentWeather(weatherForecast: WeatherForecast, targetDateTime: Date): WeatherData | null {
-    if (!weatherForecast?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
+  extractCurrentWeather(combinedForecast: CombinedForecastData, targetDateTime: Date): WeatherData | null {
+    if (!combinedForecast?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
       return null;
     }
 
-    const entry = weatherForecast.forecasts.weather.days[0].entries[0];
+    const entry = combinedForecast.forecasts.weather.days[0].entries[0];
     return {
       temperature: entry.temp ?? 0,
       apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
@@ -214,7 +214,16 @@ export class MockDataService {
       precipitationProbability: entry.precipitationProbability ?? 0,
       precipitationType: entry.precipitationType ?? "none",
       icon: entry.precisCode ?? "unknown",
-      summary: entry.precis ?? "No description available"
+      summary: entry.precis ?? "No description available",
+      // Mock rainfall data for testing
+      rainfallAmount: entry.precipitationProbability > 0 ? {
+        startRange: 0,
+        endRange: 5,
+        rangeDivide: "<",
+        rangeCode: "0",
+        probability: entry.precipitationProbability
+      } : undefined,
+      rainfallProbabilityDetailed: entry.precipitationProbability
     };
   }
 

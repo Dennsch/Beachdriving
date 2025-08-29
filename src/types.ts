@@ -27,6 +27,15 @@ export interface WeatherData {
   precipitationType: string;
   icon: string;
   summary: string;
+  // Enhanced rainfall information
+  rainfallAmount?: {
+    startRange: number | null;
+    endRange: number | null;
+    rangeDivide: string;
+    rangeCode: string;
+    probability: number;
+  };
+  rainfallProbabilityDetailed?: number; // More detailed probability from rainfallprobability forecast
 }
 
 export interface TidePoint {
@@ -140,6 +149,40 @@ export interface CombinedForecastData {
       }[];
       units: {
         temperature: string;
+      };
+      issueDateTime: string;
+    };
+    rainfallprobability?: {
+      days: {
+        dateTime: string;
+        entries: {
+          dateTime: string;
+          probability: number;
+        }[];
+      }[];
+      units: {
+        percentage: string;
+      };
+      issueDateTime: string;
+      carousel: {
+        size: number;
+        start: number;
+      };
+    };
+    rainfall?: {
+      days: {
+        dateTime: string;
+        entries: {
+          dateTime: string;
+          startRange: number | null;
+          endRange: number | null;
+          rangeDivide: string;
+          rangeCode: string;
+          probability: number;
+        }[];
+      }[];
+      units: {
+        amount: string;
       };
       issueDateTime: string;
     };
