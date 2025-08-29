@@ -199,22 +199,22 @@ export class MockDataService {
 
     const entry = weatherForecast.forecasts.weather.days[0].entries[0];
     return {
-      temperature: entry.temp,
-      apparentTemperature: entry.apparentTemp,
-      humidity: entry.humidity,
-      dewPoint: entry.dewPoint,
-      pressure: entry.pressure,
-      windSpeed: entry.windSpeed,
-      windDirection: entry.windDirection,
-      windGust: entry.windGust,
-      cloudCover: entry.cloudCover,
-      uvIndex: entry.uvIndex,
-      visibility: entry.visibility,
-      precipitationRate: entry.precipitationRate,
-      precipitationProbability: entry.precipitationProbability,
-      precipitationType: entry.precipitationType,
-      icon: entry.precisCode,
-      summary: entry.precis
+      temperature: entry.temp ?? 0,
+      apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
+      humidity: entry.humidity ?? 0,
+      dewPoint: entry.dewPoint ?? 0,
+      pressure: entry.pressure ?? 0,
+      windSpeed: entry.windSpeed ?? 0,
+      windDirection: entry.windDirection ?? 0,
+      windGust: entry.windGust ?? entry.windSpeed ?? 0,
+      cloudCover: entry.cloudCover ?? 0,
+      uvIndex: entry.uvIndex ?? 0,
+      visibility: entry.visibility ?? 0,
+      precipitationRate: entry.precipitationRate ?? 0,
+      precipitationProbability: entry.precipitationProbability ?? 0,
+      precipitationType: entry.precipitationType ?? "none",
+      icon: entry.precisCode ?? "unknown",
+      summary: entry.precis ?? "No description available"
     };
   }
 

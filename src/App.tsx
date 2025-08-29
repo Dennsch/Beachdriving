@@ -41,19 +41,23 @@ const App: React.FC = () => {
           );
 
           // Extract current weather
-          const weather = willyWeatherService.extractCurrentWeather(
-            {
-              location: combinedData.location,
-              forecasts: { weather: combinedData.forecasts.weather },
-            },
-            qldTargetDate
-          );
+          const weather = combinedData.forecasts.weather 
+            ? willyWeatherService.extractCurrentWeather(
+                {
+                  location: combinedData.location,
+                  forecasts: { weather: combinedData.forecasts.weather },
+                },
+                qldTargetDate
+              )
+            : null;
 
           // Extract tide points
-          const tides = willyWeatherService.extractTidePoints({
-            location: combinedData.location,
-            forecasts: { tides: combinedData.forecasts.tides },
-          });
+          const tides = combinedData.forecasts.tides
+            ? willyWeatherService.extractTidePoints({
+                location: combinedData.location,
+                forecasts: { tides: combinedData.forecasts.tides },
+              })
+            : [];
 
           // Calculate safety
           const isSafe = safetyService.isSafeToDrive(tides, qldTargetDate);

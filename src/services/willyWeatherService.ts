@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import {
-  Location,
   WeatherForecast,
   TideData,
   TidePoint,
@@ -288,42 +287,26 @@ export class WillyWeatherService {
     return data as CombinedForecastData;
   }
 
-  private validateLocationData(data: any): Location {
-    if (!data || typeof data !== "object") {
-      throw new Error("Invalid location data structure");
-    }
 
-    return {
-      id: data.id || 0,
-      name: data.name || "Unknown Location",
-      region: data.region || "",
-      state: data.state || "QLD",
-      postcode: data.postcode || "",
-      timeZone: data.timeZone || "Australia/Brisbane",
-      lat: data.lat || 0,
-      lng: data.lng || 0,
-      typeId: data.typeId || 0,
-    };
-  }
 
   private createWeatherData(entry: any): WeatherData {
     return {
-      temperature: entry.temp || 0,
-      apparentTemperature: entry.apparentTemp || entry.temp || 0,
-      humidity: entry.humidity || 0,
-      dewPoint: entry.dewPoint || 0,
-      pressure: entry.pressure || 0,
-      windSpeed: entry.windSpeed || 0,
-      windDirection: entry.windDirection || 0,
-      windGust: entry.windGust || entry.windSpeed || 0,
-      cloudCover: entry.cloudCover || 0,
-      uvIndex: entry.uvIndex || 0,
-      visibility: entry.visibility || 0,
-      precipitationRate: entry.precipitationRate || 0,
-      precipitationProbability: entry.precipitationProbability || 0,
-      precipitationType: entry.precipitationType || "none",
-      icon: entry.precisCode || "unknown",
-      summary: entry.precis || "No description available",
+      temperature: entry.temp ?? 0,
+      apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
+      humidity: entry.humidity ?? 0,
+      dewPoint: entry.dewPoint ?? 0,
+      pressure: entry.pressure ?? 0,
+      windSpeed: entry.windSpeed ?? 0,
+      windDirection: entry.windDirection ?? 0,
+      windGust: entry.windGust ?? entry.windSpeed ?? 0,
+      cloudCover: entry.cloudCover ?? 0,
+      uvIndex: entry.uvIndex ?? 0,
+      visibility: entry.visibility ?? 0,
+      precipitationRate: entry.precipitationRate ?? 0,
+      precipitationProbability: entry.precipitationProbability ?? 0,
+      precipitationType: entry.precipitationType ?? "none",
+      icon: entry.precisCode ?? "unknown",
+      summary: entry.precis ?? "No description available",
     };
   }
 
