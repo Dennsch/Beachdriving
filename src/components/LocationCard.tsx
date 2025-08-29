@@ -160,7 +160,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
               <div className="label">Temperature</div>
               <div className="value">{Math.round(weather.temperature)}°C</div>
             </div>
-            {weather.apparentTemperature !== weather.temperature && (
+            {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
               <div className="weather-item">
                 <div className="label">Feels Like</div>
                 <div className="value">
@@ -174,6 +174,18 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 <div className="value">{weather.precipitationProbability}%</div>
               </div>
             )}
+            {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
+              <div className="weather-item">
+                <div className="label">Rainfall</div>
+                <div className="value">
+                  {weather.rainfallAmount.startRange !== null && weather.rainfallAmount.endRange !== null
+                    ? `${weather.rainfallAmount.startRange}-${weather.rainfallAmount.endRange}mm`
+                    : weather.rainfallAmount.endRange !== null
+                    ? `${weather.rainfallAmount.rangeDivide}${weather.rainfallAmount.endRange}mm`
+                    : 'Possible'}
+                </div>
+              </div>
+            )}
             {weather.windSpeed > 0 && (
               <div className="weather-item">
                 <div className="label">Wind</div>
@@ -184,25 +196,64 @@ const LocationCard: React.FC<LocationCardProps> = ({
             )}
           </div>
 
-          {/* Weather Summary */}
+          {/* Enhanced Weather Summary */}
           {weather.summary && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "15px",
-                backgroundColor: "#f0f8ff",
-                borderRadius: "8px",
-                fontSize: "14px",
-                color: "#2c3e50",
-                border: "1px solid #e3f2fd",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <span style={{ fontSize: "18px" }}>🌤️</span>
+            <div style={{ 
+              marginTop: '15px', 
+              padding: '15px', 
+              backgroundColor: '#f0f8ff', 
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: '#2c3e50',
+              border: '1px solid #e3f2fd'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🌤️</span>
                 <strong>Current Conditions:</strong> {weather.summary}
               </div>
+              
+              {/* Additional rainfall information */}
+              {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
+                <div style={{ 
+                  marginTop: '8px', 
+                  padding: '8px', 
+                  backgroundColor: '#e8f4fd', 
+                  borderRadius: '6px',
+                  fontSize: '13px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '16px' }}>🌧️</span>
+                    <strong>Rainfall Forecast:</strong>
+                  </div>
+                  <div style={{ marginTop: '4px', marginLeft: '22px' }}>
+                    {weather.rainfallAmount.startRange !== null && weather.rainfallAmount.endRange !== null
+                      ? `Expected: ${weather.rainfallAmount.startRange}-${weather.rainfallAmount.endRange}mm`
+                      : weather.rainfallAmount.endRange !== null
+                      ? `Expected: ${weather.rainfallAmount.rangeDivide}${weather.rainfallAmount.endRange}mm`
+                      : 'Light rainfall possible'}
+                    {weather.rainfallAmount.probability > 0 && (
+                      <span style={{ color: '#666', marginLeft: '8px' }}>
+                        ({weather.rainfallAmount.probability}% chance)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Felt temperature note */}
+              {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
+                <div style={{ 
+                  marginTop: '8px', 
+                  fontSize: '12px', 
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  <span style={{ fontSize: '14px' }}>🌡️</span>
+                  {weather.apparentTemperature > weather.temperature 
+                    ? ` Feels warmer due to humidity and wind conditions`
+                    : ` Feels cooler due to wind chill`}
+                </div>
+              )}
             </div>
           )}
         </>

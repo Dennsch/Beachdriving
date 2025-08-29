@@ -45,10 +45,7 @@ const App: React.FC = () => {
           // Extract current weather
           const weather = combinedData.forecasts.weather
             ? willyWeatherService.extractCurrentWeather(
-                {
-                  location: combinedData.location,
-                  forecasts: { weather: combinedData.forecasts.weather },
-                },
+                combinedData,
                 qldTargetDate
               )
             : null;

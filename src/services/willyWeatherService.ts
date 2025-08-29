@@ -194,17 +194,17 @@ export class WillyWeatherService {
   }
 
   extractCurrentWeather(
-    weatherForecast: WeatherForecast,
+    combinedForecast: CombinedForecastData,
     targetDateTime: Date
   ): WeatherData | null {
     try {
-      if (!weatherForecast?.forecasts?.weather?.days) {
+      if (!combinedForecast?.forecasts?.weather?.days) {
         console.warn("Invalid weather forecast structure - missing days array");
         return null;
       }
 
       const targetTime = targetDateTime.getTime();
-      const days = weatherForecast.forecasts.weather.days;
+      const days = combinedForecast.forecasts.weather.days;
 
       for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
         const day = days[dayIndex];
@@ -226,7 +226,7 @@ export class WillyWeatherService {
           
           // Expand the time window to 6 hours to be more flexible
           if (timeDiff <= 6 * 60 * 60 * 1000) {
-            const weatherData = this.createWeatherData(entry);
+            const weatherData = this.createWeatherData(entry, combinedForecast, targetDateTime);
             return weatherData;
           }
         }
@@ -235,7 +235,7 @@ export class WillyWeatherService {
       // If no exact match, return the first valid entry of the first day
       if (days.length > 0 && days[0].entries && days[0].entries.length > 0) {
         const firstEntry = days[0].entries[0];
-        const weatherData = this.createWeatherData(firstEntry);
+        const weatherData = this.createWeatherData(firstEntry, combinedForecast, targetDateTime);
         return weatherData;
       }
 
@@ -302,7 +302,7 @@ export class WillyWeatherService {
     return data as CombinedForecastData;
   }
 
-  private createWeatherData(entry: any): WeatherData {
+  private createWeatherData(entry: any, combinedForecast: CombinedForecastData, targetDateTime: Date): WeatherData {
     console.log("Creating weather data from entry:", {
       dateTime: entry.dateTime,
       availableFields: Object.keys(entry),
@@ -320,6 +320,9 @@ export class WillyWeatherService {
     const summary = entry.precis ?? entry.summary ?? entry.description ?? "No description available";
     const icon = entry.precisCode ?? entry.icon ?? entry.code ?? "unknown";
 
+    // Extract rainfall information from combined forecast
+    const rainfallInfo = this.extractRainfallInfo(combinedForecast, targetDateTime);
+
     const weatherData = {
       temperature,
       apparentTemperature,
@@ -333,20 +336,88 @@ export class WillyWeatherService {
       uvIndex: entry.uvIndex ?? entry.uv_index ?? entry.uvi ?? 0,
       visibility: entry.visibility ?? entry.visibilityKm ?? 0,
       precipitationRate: entry.precipitationRate ?? entry.precipitation_rate ?? entry.rainRate ?? 0,
-      precipitationProbability,
+      precipitationProbability: rainfallInfo.detailedProbability || precipitationProbability,
       precipitationType: entry.precipitationType ?? entry.precipitation_type ?? "none",
       icon,
       summary,
+      rainfallAmount: rainfallInfo.amount,
+      rainfallProbabilityDetailed: rainfallInfo.detailedProbability,
     };
 
     console.log("Created weather data:", {
       temperature: weatherData.temperature,
+      apparentTemperature: weatherData.apparentTemperature,
       summary: weatherData.summary,
       windSpeed: weatherData.windSpeed,
+      precipitationProbability: weatherData.precipitationProbability,
+      rainfallAmount: weatherData.rainfallAmount,
       hasValidTemp: weatherData.temperature > 0
     });
     
     return weatherData;
+  }
+
+  private extractRainfallInfo(combinedForecast: CombinedForecastData, targetDateTime: Date): {
+    amount?: {
+      startRange: number | null;
+      endRange: number | null;
+      rangeDivide: string;
+      rangeCode: string;
+      probability: number;
+    };
+    detailedProbability?: number;
+  } {
+    const result: any = {};
+
+    try {
+      const targetTime = targetDateTime.getTime();
+      const timeWindow = 3 * 60 * 60 * 1000; // 3 hour window for matching
+
+      // Extract detailed rainfall probability
+      if (combinedForecast.forecasts.rainfallprobability?.days) {
+        for (const day of combinedForecast.forecasts.rainfallprobability.days) {
+          if (day.entries) {
+            for (const entry of day.entries) {
+              const entryTime = new Date(entry.dateTime).getTime();
+              if (Math.abs(entryTime - targetTime) <= timeWindow) {
+                result.detailedProbability = entry.probability;
+                break;
+              }
+            }
+          }
+          if (result.detailedProbability !== undefined) break;
+        }
+      }
+
+      // Extract rainfall amount information
+      if (combinedForecast.forecasts.rainfall?.days) {
+        for (const day of combinedForecast.forecasts.rainfall.days) {
+          if (day.entries) {
+            for (const entry of day.entries) {
+              const entryTime = new Date(entry.dateTime).getTime();
+              // Use a wider time window for daily rainfall data
+              if (Math.abs(entryTime - targetTime) <= 12 * 60 * 60 * 1000) {
+                result.amount = {
+                  startRange: entry.startRange,
+                  endRange: entry.endRange,
+                  rangeDivide: entry.rangeDivide,
+                  rangeCode: entry.rangeCode,
+                  probability: entry.probability,
+                };
+                break;
+              }
+            }
+          }
+          if (result.amount) break;
+        }
+      }
+
+      console.log("Extracted rainfall info:", result);
+    } catch (error) {
+      console.error("Error extracting rainfall info:", error);
+    }
+
+    return result;
   }
 
   getLocationIds(): { [key: string]: number } {
