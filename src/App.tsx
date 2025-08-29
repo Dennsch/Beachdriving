@@ -34,23 +34,26 @@ const App: React.FC = () => {
         const locationId = locationIds[locationName];
 
         try {
-          // Fetch location details
-          const location = await willyWeatherService.getLocation(locationId);
-
-          // Fetch weather and tide data
-          const [weatherForecast, tideData] = await Promise.all([
-            willyWeatherService.getWeatherForecast(locationId, selectedDate),
-            willyWeatherService.getTideForecast(locationId, selectedDate),
-          ]);
+          // Fetch combined weather and tide data (includes location info)
+          const combinedData = await willyWeatherService.getCombinedForecast(
+            locationId,
+            selectedDate
+          );
 
           // Extract current weather
           const weather = willyWeatherService.extractCurrentWeather(
-            weatherForecast,
+            {
+              location: combinedData.location,
+              forecasts: { weather: combinedData.forecasts.weather },
+            },
             qldTargetDate
           );
 
           // Extract tide points
-          const tides = willyWeatherService.extractTidePoints(tideData);
+          const tides = willyWeatherService.extractTidePoints({
+            location: combinedData.location,
+            forecasts: { tides: combinedData.forecasts.tides },
+          });
 
           // Calculate safety
           const isSafe = safetyService.isSafeToDrive(tides, qldTargetDate);
@@ -60,7 +63,7 @@ const App: React.FC = () => {
           );
 
           return {
-            location,
+            location: combinedData.location,
             weather,
             tides,
             isSafe,
@@ -177,10 +180,7 @@ const App: React.FC = () => {
             value={selectedDate}
             onChange={handleDateChange}
             min={format(new Date(), "yyyy-MM-dd")}
-            max={format(
-              endOfMonth(addMonths(new Date(), 1)),
-              "yyyy-MM-dd"
-            )}
+            max={format(endOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd")}
           />
           {isToday && (
             <div

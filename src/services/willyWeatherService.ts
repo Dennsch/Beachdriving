@@ -98,27 +98,7 @@ export class WillyWeatherService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  async getLocation(locationId: number): Promise<Location> {
-    const cacheKey = this.getCacheKey(`location_${locationId}`);
-    const cached = this.getCachedData(cacheKey);
-    if (cached) return cached;
 
-    console.log(`Fetching location data for ID: ${locationId}`);
-    const url = `${BASE_URL}/${API_KEY}/locations/${locationId}.json`;
-    console.log(`Request URL: ${url}`);
-
-    const response = await apiClient.get(url);
-    console.log(`Location API response:`, response.data);
-
-    // WillyWeather API returns location data directly, not nested under 'location'
-    if (!response.data) {
-      throw new Error("No location data received from API");
-    }
-
-    const location = this.validateLocationData(response.data);
-    this.setCachedData(cacheKey, location);
-    return location;
-  }
 
   async getCombinedForecast(
     locationId: number,
