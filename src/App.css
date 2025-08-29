@@ -1,7 +1,11 @@
+/* ===== MAIN APP LAYOUT ===== */
+
 .App {
   min-height: 100vh;
   /* Remove background to allow banner image to show */
 }
+
+/* ===== LAYOUT COMPONENTS ===== */
 
 .container {
   max-width: 1200px;
@@ -30,6 +34,8 @@
   font-size: 1.2rem;
   opacity: 0.9;
 }
+
+/* ===== DATE PICKER COMPONENT ===== */
 
 .date-picker-container {
   text-align: center;
@@ -64,12 +70,16 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
+/* ===== LOCATIONS GRID ===== */
+
 .locations-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 25px;
   margin-bottom: 30px;
 }
+
+/* ===== LOCATION CARD COMPONENT ===== */
 
 .location-card {
   background: white;
@@ -92,6 +102,8 @@
   padding-bottom: 15px;
   font-size: 1.5rem;
 }
+
+/* ===== SAFETY STATUS COMPONENT ===== */
 
 .safety-status {
   padding: 18px;
@@ -116,6 +128,71 @@
   border: 2px solid #f1b0b7;
   box-shadow: 0 4px 12px rgba(114, 28, 36, 0.1);
 }
+
+/* Safety status content layout */
+.safety-status-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.safety-status-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.safety-status-image.error {
+  opacity: 0.7;
+}
+
+.safety-status-text {
+  flex: 1;
+}
+
+.safety-status-title {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.safety-status-description {
+  font-size: 14px;
+  font-weight: normal;
+}
+
+/* ===== ERROR STATES ===== */
+
+.error-details {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #fff5f5;
+  border-radius: 8px;
+  border: 1px solid #fed7d7;
+}
+
+.error-title {
+  font-size: 14px;
+  color: #c53030;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.error-message {
+  font-size: 13px;
+  color: #742a2a;
+  line-height: 1.4;
+}
+
+.error-help {
+  font-size: 12px;
+  color: #9c4221;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* ===== WEATHER INFORMATION ===== */
 
 .weather-info {
   display: grid;
@@ -150,6 +227,54 @@
   font-weight: bold;
   color: #2c3e50;
 }
+
+/* Weather summary box */
+.weather-summary {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  border: 1px solid #e3f2fd;
+}
+
+.weather-summary-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-summary-icon {
+  font-size: 18px;
+}
+
+/* Weather unavailable warning */
+.weather-unavailable {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #fff8e1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #f57c00;
+  border: 1px solid #ffcc02;
+  text-align: center;
+}
+
+.weather-unavailable-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.weather-unavailable-subtitle {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* ===== TIDE INFORMATION ===== */
 
 .tide-info {
   margin: 20px 0;
@@ -201,6 +326,8 @@
   color: #34495e;
 }
 
+/* ===== SAFE DRIVING WINDOWS ===== */
+
 .safe-windows {
   margin-top: 25px;
   padding: 20px;
@@ -235,6 +362,13 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
+.safe-windows-none {
+  color: #e74c3c;
+  font-style: italic;
+}
+
+/* ===== LOADING AND ERROR STATES ===== */
+
 .loading {
   text-align: center;
   padding: 60px 20px;
@@ -264,6 +398,8 @@
   box-shadow: 0 4px 12px rgba(114, 28, 36, 0.1);
 }
 
+/* ===== RESPONSIVE DESIGN ===== */
+
 @media (max-width: 768px) {
   .container {
     padding: 15px;
@@ -288,5 +424,15 @@
   
   .tide-times {
     grid-template-columns: 1fr;
+  }
+  
+  .safety-status-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .safety-status-image {
+    width: 60px;
+    height: 60px;
   }
 }
