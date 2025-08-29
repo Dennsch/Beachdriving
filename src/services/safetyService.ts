@@ -1,6 +1,6 @@
 import { TidePoint, SafeWindow } from '../types';
 import { format, addHours, subHours, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 
 const QUEENSLAND_TIMEZONE = 'Australia/Brisbane';
 const UNSAFE_HOURS_BEFORE_HIGH_TIDE = 2;
@@ -17,13 +17,28 @@ export class SafetyService {
   }
 
   /**
+   * Converts a tide dateTime string (in Queensland time) to a proper Queensland timezone Date object
+   * The API returns tide times in Queensland time format like "2025-08-29 05:27:00"
+   * but JavaScript Date constructor treats them as local browser time, causing timezone mismatches
+   */
+  private convertTideTimeToQueenslandDate(tideDateTime: string): Date {
+    // The API returns times in Queensland timezone but as plain strings
+    // We need to explicitly convert them to Queensland timezone-aware Date objects
+    
+    // Parse the string as if it's in Queensland timezone
+    // zonedTimeToUtc treats the input string as being in the specified timezone
+    // and converts it to a UTC Date object that represents the same moment
+    return zonedTimeToUtc(tideDateTime, QUEENSLAND_TIMEZONE);
+  }
+
+  /**
    * Determines if it's currently safe to drive on the beach
    */
   isSafeToDrive(tidePoints: TidePoint[], currentTime: Date): boolean {
     const highTides = tidePoints.filter(tide => tide.type === 'high');
     
     for (const highTide of highTides) {
-      const tideTime = new Date(highTide.dateTime);
+      const tideTime = this.convertTideTimeToQueenslandDate(highTide.dateTime);
       const unsafeStart = subHours(tideTime, UNSAFE_HOURS_BEFORE_HIGH_TIDE);
       const unsafeEnd = addHours(tideTime, UNSAFE_HOURS_AFTER_HIGH_TIDE);
       
@@ -48,7 +63,7 @@ export class SafetyService {
       .filter(tide => tide.type === 'high')
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: this.convertTideTimeToQueenslandDate(tide.dateTime)
       }))
       .filter(tide => {
         // Include tides that might affect the target day
@@ -116,7 +131,7 @@ export class SafetyService {
       .filter(tide => tide.type === 'high')
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: this.convertTideTimeToQueenslandDate(tide.dateTime)
       }))
       .filter(tide => tide.dateTime > currentTime)
       .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
@@ -136,7 +151,7 @@ export class SafetyService {
     const sortedTides = tidePoints
       .map(tide => ({
         ...tide,
-        dateTime: new Date(tide.dateTime)
+        dateTime: this.convertTideTimeToQueenslandDate(tide.dateTime)
       }))
       .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
 
