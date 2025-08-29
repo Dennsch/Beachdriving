@@ -14,8 +14,8 @@ const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
   "Bribie Island": 20006, // Bribie Island, QLD
-  "Moreton Island": 20007, // Moreton Island, QLD
-  "North Stradbroke Island": 8624, // North Stradbroke Island, QLD
+  "Moreton Island": 37401, // Moreton Island, QLD
+  "North Stradbroke Island": 19623, // North Stradbroke Island, QLD
 };
 
 // Configure axios with timeout and retry logic
