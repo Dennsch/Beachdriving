@@ -9,7 +9,7 @@ import {
 
 const API_KEY = "ZWY2Y2FlZmZlNzQ0NzZhYzI4ZDNiNG";
 // Use the proxy setup for API calls
-const BASE_URL = "/v2";
+const BASE_URL = "https://api.willyweather.com.au/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
