@@ -212,7 +212,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
               </div>
               
               {/* Additional rainfall information */}
-              {/* {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
+              {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
                 <div style={{ 
                   marginTop: '8px', 
                   padding: '8px', 
@@ -237,7 +237,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
                     )}
                   </div>
                 </div>
-              )} */}
+              )}
               
               {/* Felt temperature note */}
               {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
