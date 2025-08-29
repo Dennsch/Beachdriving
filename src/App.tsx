@@ -288,23 +288,6 @@ const App: React.FC = () => {
               </div>
             )}
             
-            {/* Debug Button - Remove in production */}
-            <button
-              onClick={handleDebugAPI}
-              style={{
-                marginTop: "10px",
-                padding: "8px 16px",
-                backgroundColor: "#e74c3c",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                fontSize: "12px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              Debug API (Check Console)
-            </button>
           </div>
 
           <div
