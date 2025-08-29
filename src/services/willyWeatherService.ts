@@ -13,9 +13,9 @@ const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
-  "Bribie Island": 20006, // Bribie Island, QLD
+  Bribie: 20006, // Bribie Island, QLD
   "Moreton Island": 37401, // Moreton Island, QLD
-  "North Stradbroke Island": 19623, // North Stradbroke Island, QLD
+  Straddie: 19623, // North Stradbroke Island, QLD
 };
 
 // Configure axios with timeout and retry logic
@@ -204,45 +204,28 @@ export class WillyWeatherService {
         return null;
       }
 
+      const targetTime = targetDateTime.getTime();
       const days = weatherForecast.forecasts.weather.days;
-      
-      console.log(`Processing ${days.length} weather days for target date:`, targetDateTime.toISOString().split('T')[0]);
 
-      // Simplified approach: find the first valid weather entry for the target date
-      const targetDateStr = targetDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-      
       for (const day of days) {
         if (!day.entries || !Array.isArray(day.entries)) continue;
 
-        // Check if this day matches our target date
-        const dayDateStr = day.dateTime ? day.dateTime.split(' ')[0] : '';
-        
-        if (dayDateStr === targetDateStr || days.length === 1) {
-          // Found matching day or only one day available, use the first valid entry
-          for (const entry of day.entries) {
-            if (entry && (entry.min !== undefined || entry.max !== undefined || entry.temp !== undefined)) {
-              const weatherData = this.createWeatherData(entry);
-              console.log(`Weather data extracted for ${dayDateStr}:`, weatherData.summary, `${weatherData.temperature}°C`);
-              return weatherData;
-            }
+        for (const entry of day.entries) {
+          if (!entry.dateTime) continue;
+
+          const entryTime = new Date(entry.dateTime).getTime();
+          // Find the closest entry within 3 hours
+          if (Math.abs(entryTime - targetTime) <= 3 * 60 * 60 * 1000) {
+            return this.createWeatherData(entry);
           }
         }
       }
 
-      // Fallback: use the first valid entry from any day
-      for (const day of days) {
-        if (day.entries && Array.isArray(day.entries)) {
-          for (const entry of day.entries) {
-            if (entry && (entry.min !== undefined || entry.max !== undefined || entry.temp !== undefined)) {
-              const weatherData = this.createWeatherData(entry);
-              console.log('Using fallback weather data:', weatherData.summary, `${weatherData.temperature}°C`);
-              return weatherData;
-            }
-          }
-        }
+      // If no exact match, return the first valid entry of the day
+      if (days.length > 0 && days[0].entries && days[0].entries.length > 0) {
+        return this.createWeatherData(days[0].entries[0]);
       }
 
-      console.warn('No valid weather data found in forecast');
       return null;
     } catch (error) {
       console.error("Error extracting current weather:", error);
@@ -306,26 +289,20 @@ export class WillyWeatherService {
   }
 
   private createWeatherData(entry: any): WeatherData {
-    // Calculate temperature from min/max if available, otherwise use temp field
-    const temperature = entry.temp ?? 
-      (entry.min !== undefined && entry.max !== undefined 
-        ? (entry.min + entry.max) / 2 
-        : entry.max ?? entry.min ?? 20); // Default to 20°C if no temperature data
-    
     return {
-      temperature: temperature,
-      apparentTemperature: entry.apparentTemp ?? temperature,
-      humidity: entry.humidity ?? 50, // Default to 50% if not available
-      dewPoint: entry.dewPoint ?? temperature - 5, // Rough estimate
-      pressure: entry.pressure ?? 1013, // Standard atmospheric pressure
-      windSpeed: entry.windSpeed ?? 10, // Default to light breeze
+      temperature: entry.temp ?? 0,
+      apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
+      humidity: entry.humidity ?? 0,
+      dewPoint: entry.dewPoint ?? 0,
+      pressure: entry.pressure ?? 0,
+      windSpeed: entry.windSpeed ?? 0,
       windDirection: entry.windDirection ?? 0,
-      windGust: entry.windGust ?? entry.windSpeed ?? 15,
-      cloudCover: entry.cloudCover ?? 30, // Default to partly cloudy
-      uvIndex: entry.uvIndex ?? 5, // Moderate UV
-      visibility: entry.visibility ?? 10, // 10km visibility
+      windGust: entry.windGust ?? entry.windSpeed ?? 0,
+      cloudCover: entry.cloudCover ?? 0,
+      uvIndex: entry.uvIndex ?? 0,
+      visibility: entry.visibility ?? 0,
       precipitationRate: entry.precipitationRate ?? 0,
-      precipitationProbability: entry.precipitationProbability ?? 20, // Default 20% chance
+      precipitationProbability: entry.precipitationProbability ?? 0,
       precipitationType: entry.precipitationType ?? "none",
       icon: entry.precisCode ?? "unknown",
       summary: entry.precis ?? "No description available",
