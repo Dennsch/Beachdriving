@@ -211,33 +211,6 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 <strong>Current Conditions:</strong> {weather.summary}
               </div>
               
-              {/* Additional rainfall information */}
-              {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  padding: '8px', 
-                  backgroundColor: '#e8f4fd', 
-                  borderRadius: '6px',
-                  fontSize: '13px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '16px' }}>🌧️</span>
-                    <strong>Rainfall Forecast:</strong>
-                  </div>
-                  <div style={{ marginTop: '4px', marginLeft: '22px' }}>
-                    {weather.rainfallAmount.startRange !== null && weather.rainfallAmount.endRange !== null
-                      ? `Expected: ${weather.rainfallAmount.startRange}-${weather.rainfallAmount.endRange}mm`
-                      : weather.rainfallAmount.endRange !== null
-                      ? `Expected: ${weather.rainfallAmount.rangeDivide}${weather.rainfallAmount.endRange}mm`
-                      : 'Light rainfall possible'}
-                    {weather.rainfallAmount.probability > 0 && (
-                      <span style={{ color: '#666', marginLeft: '8px' }}>
-                        ({weather.rainfallAmount.probability}% chance)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
               
               {/* Felt temperature note */}
               {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
