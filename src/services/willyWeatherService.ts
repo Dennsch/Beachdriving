@@ -13,7 +13,7 @@ const BASE_URL = process.env.NODE_ENV === "production" ? "/api" : "/v2";
 
 // Correct Queensland beach location IDs from WillyWeather API
 const LOCATIONS = {
-  Bribie: 20006, // Bribie Island, QLD 
+  Bribie: 20006, // Bribie Island, QLD
   "Moreton Island": 37401, // Moreton Island, QLD
   Straddie: 19623, // North Stradbroke Island, QLD
 };
@@ -103,7 +103,6 @@ export class WillyWeatherService {
     if (cached) return cached;
 
     try {
-
       const url =
         process.env.NODE_ENV === "production"
           ? `${BASE_URL}/weather?locationId=${locationId}`
@@ -112,19 +111,20 @@ export class WillyWeatherService {
       const headers = {
         "Content-Type": "application/json",
         "x-payload": JSON.stringify({
-          forecasts: ["tides", "weather","rainfallprobability","rainfall"],
+          forecasts: ["tides", "weather", "rainfallprobability", "rainfall"],
           days: 1,
           startDate: date,
         }),
       };
 
-
-
       const response = await apiClient.get(url, { headers });
-      
+
       // Log first weather entry if available for debugging
       if (response.data?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
-        console.log("Sample weather entry:", response.data.forecasts.weather.days[0].entries[0]);
+        console.log(
+          "Sample weather entry:",
+          response.data.forecasts.weather.days[0].entries[0]
+        );
       }
 
       if (!response.data || !response.data.forecasts) {
@@ -214,7 +214,11 @@ export class WillyWeatherService {
           continue;
         }
 
-        for (let entryIndex = 0; entryIndex < day.entries.length; entryIndex++) {
+        for (
+          let entryIndex = 0;
+          entryIndex < day.entries.length;
+          entryIndex++
+        ) {
           const entry = day.entries[entryIndex];
 
           if (!entry.dateTime) {
@@ -223,10 +227,14 @@ export class WillyWeatherService {
 
           const entryTime = new Date(entry.dateTime).getTime();
           const timeDiff = Math.abs(entryTime - targetTime);
-          
+
           // Expand the time window to 6 hours to be more flexible
           if (timeDiff <= 6 * 60 * 60 * 1000) {
-            const weatherData = this.createWeatherData(entry, combinedForecast, targetDateTime);
+            const weatherData = this.createWeatherData(
+              entry,
+              combinedForecast,
+              targetDateTime
+            );
             return weatherData;
           }
         }
@@ -235,7 +243,11 @@ export class WillyWeatherService {
       // If no exact match, return the first valid entry of the first day
       if (days.length > 0 && days[0].entries && days[0].entries.length > 0) {
         const firstEntry = days[0].entries[0];
-        const weatherData = this.createWeatherData(firstEntry, combinedForecast, targetDateTime);
+        const weatherData = this.createWeatherData(
+          firstEntry,
+          combinedForecast,
+          targetDateTime
+        );
         return weatherData;
       }
 
@@ -302,26 +314,52 @@ export class WillyWeatherService {
     return data as CombinedForecastData;
   }
 
-  private createWeatherData(entry: any, combinedForecast: CombinedForecastData, targetDateTime: Date): WeatherData {
+  private createWeatherData(
+    entry: any,
+    combinedForecast: CombinedForecastData,
+    targetDateTime: Date
+  ): WeatherData {
     console.log("Creating weather data from entry:", {
       dateTime: entry.dateTime,
       availableFields: Object.keys(entry),
       temp: entry.temp,
-      precis: entry.precis
+      precis: entry.precis,
     });
-    
+
     // Check for different possible field names
-    const temperature = entry.temp ?? entry.temperature ?? entry.min ?? entry.max ?? 0;
-    const apparentTemperature = entry.apparentTemp ?? entry.apparentTemperature ?? entry.feelsLike ?? temperature;
-    const windSpeed = entry.windSpeed ?? entry.wind_speed ?? entry.windSpeedKmh ?? 0;
-    const windDirection = entry.windDirection ?? entry.wind_direction ?? entry.windDirectionDeg ?? 0;
-    const windGust = entry.windGust ?? entry.wind_gust ?? entry.windGustKmh ?? windSpeed;
-    const precipitationProbability = entry.precipitationProbability ?? entry.precipitation_probability ?? entry.rainChance ?? 0;
-    const summary = entry.precis ?? entry.summary ?? entry.description ?? "No description available";
+    const temperature =
+      entry.temp ?? entry.temperature ?? entry.min ?? entry.max ?? 0;
+    const apparentTemperature =
+      entry.apparentTemp ??
+      entry.apparentTemperature ??
+      entry.feelsLike ??
+      temperature;
+    const windSpeed =
+      entry.windSpeed ?? entry.wind_speed ?? entry.windSpeedKmh ?? 0;
+    const windDirection =
+      entry.windDirection ??
+      entry.wind_direction ??
+      entry.windDirectionDeg ??
+      0;
+    const windGust =
+      entry.windGust ?? entry.wind_gust ?? entry.windGustKmh ?? windSpeed;
+    const precipitationProbability =
+      entry.precipitationProbability ??
+      entry.precipitation_probability ??
+      entry.rainChance ??
+      0;
+    const summary =
+      entry.precis ??
+      entry.summary ??
+      entry.description ??
+      "No description available";
     const icon = entry.precisCode ?? entry.icon ?? entry.code ?? "unknown";
 
     // Extract rainfall information from combined forecast
-    const rainfallInfo = this.extractRainfallInfo(combinedForecast, targetDateTime);
+    const rainfallInfo = this.extractRainfallInfo(
+      combinedForecast,
+      targetDateTime
+    );
 
     const weatherData = {
       temperature,
@@ -332,12 +370,19 @@ export class WillyWeatherService {
       windSpeed,
       windDirection,
       windGust,
-      cloudCover: entry.cloudCover ?? entry.cloud_cover ?? entry.cloudiness ?? 0,
+      cloudCover:
+        entry.cloudCover ?? entry.cloud_cover ?? entry.cloudiness ?? 0,
       uvIndex: entry.uvIndex ?? entry.uv_index ?? entry.uvi ?? 0,
       visibility: entry.visibility ?? entry.visibilityKm ?? 0,
-      precipitationRate: entry.precipitationRate ?? entry.precipitation_rate ?? entry.rainRate ?? 0,
-      precipitationProbability: rainfallInfo.detailedProbability || precipitationProbability,
-      precipitationType: entry.precipitationType ?? entry.precipitation_type ?? "none",
+      precipitationRate:
+        entry.precipitationRate ??
+        entry.precipitation_rate ??
+        entry.rainRate ??
+        0,
+      precipitationProbability:
+        rainfallInfo.detailedProbability || precipitationProbability,
+      precipitationType:
+        entry.precipitationType ?? entry.precipitation_type ?? "none",
       icon,
       summary,
       rainfallAmount: rainfallInfo.amount,
@@ -351,13 +396,16 @@ export class WillyWeatherService {
       windSpeed: weatherData.windSpeed,
       precipitationProbability: weatherData.precipitationProbability,
       rainfallAmount: weatherData.rainfallAmount,
-      hasValidTemp: weatherData.temperature > 0
+      hasValidTemp: weatherData.temperature > 0,
     });
-    
+
     return weatherData;
   }
 
-  private extractRainfallInfo(combinedForecast: CombinedForecastData, targetDateTime: Date): {
+  private extractRainfallInfo(
+    combinedForecast: CombinedForecastData,
+    targetDateTime: Date
+  ): {
     amount?: {
       startRange: number | null;
       endRange: number | null;

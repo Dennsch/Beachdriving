@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { format, addMonths, endOfMonth } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import LocationCard from "./components/LocationCard";
-import { WillyWeatherService } from "./services/willyWeatherService";
+import { WeatherServiceFactory } from "./services/weatherServiceFactory";
 import { SafetyService } from "./services/safetyService";
 import { LocationData, Location } from "./types";
 import BannerImage from "./images/Banner.png";
@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
-  const willyWeatherService = WillyWeatherService.getInstance();
+  const weatherService = WeatherServiceFactory.getWeatherService();
   const safetyService = SafetyService.getInstance();
 
   const fetchAllLocationData = useCallback(async () => {
@@ -25,8 +25,8 @@ const App: React.FC = () => {
     setError("");
 
     try {
-      const locationIds = willyWeatherService.getLocationIds();
-      const locationNames = willyWeatherService.getLocationNames();
+      const locationIds = weatherService.getLocationIds();
+      const locationNames = weatherService.getLocationNames();
       const targetDate = new Date(selectedDate + "T12:00:00");
       const qldTargetDate = utcToZonedTime(targetDate, QUEENSLAND_TIMEZONE);
 
@@ -37,14 +37,14 @@ const App: React.FC = () => {
 
         try {
           // Fetch combined weather and tide data (includes location info)
-          const combinedData = await willyWeatherService.getCombinedForecast(
+          const combinedData = await weatherService.getCombinedForecast(
             locationId,
             selectedDate
           );
 
           // Extract current weather
           const weather = combinedData.forecasts.weather
-            ? willyWeatherService.extractCurrentWeather(
+            ? weatherService.extractCurrentWeather(
                 combinedData,
                 qldTargetDate
               )
@@ -54,7 +54,7 @@ const App: React.FC = () => {
 
           // Extract tide points
           const tides = combinedData.forecasts.tides
-            ? willyWeatherService.extractTidePoints({
+            ? weatherService.extractTidePoints({
                 location: combinedData.location,
                 forecasts: { tides: combinedData.forecasts.tides },
               })
@@ -112,7 +112,7 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, safetyService, willyWeatherService]);
+  }, [selectedDate, safetyService, weatherService]);
 
   // Initialize with current Queensland time
   useEffect(() => {

@@ -174,7 +174,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 <div className="value">{weather.precipitationProbability}%</div>
               </div>
             )}
-            {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
+            {weather.rainfallAmount && weather.rainfallAmount.probability > 0 ? (
               <div className="weather-item">
                 <div className="label">Rainfall</div>
                 <div className="value">
@@ -185,15 +185,14 @@ const LocationCard: React.FC<LocationCardProps> = ({
                     : 'Possible'}
                 </div>
               </div>
-            )}
-            {weather.windSpeed > 0 && (
+            ):(weather.windSpeed > 0 && (
               <div className="weather-item">
                 <div className="label">Wind</div>
                 <div className="value">
                   {Math.round(weather.windSpeed)} km/h
                 </div>
               </div>
-            )}
+            ))}
           </div>
 
           {/* Enhanced Weather Summary */}
@@ -213,7 +212,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
               </div>
               
               {/* Additional rainfall information */}
-              {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
+              {/* {weather.rainfallAmount && weather.rainfallAmount.probability > 0 && (
                 <div style={{ 
                   marginTop: '8px', 
                   padding: '8px', 
@@ -238,7 +237,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
                     )}
                   </div>
                 </div>
-              )}
+              )} */}
               
               {/* Felt temperature note */}
               {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (

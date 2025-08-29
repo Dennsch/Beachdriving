@@ -149,6 +149,29 @@ export class MockDataService {
     return mockTideData;
   }
 
+  async getCombinedForecast(locationId: number, date: string): Promise<CombinedForecastData> {
+    await this.delay(700);
+    
+    const location = this.locations[locationId];
+    if (!location) {
+      throw new Error(`Location ${locationId} not found`);
+    }
+
+    // Get both weather and tide data
+    const weatherForecast = await this.getWeatherForecast(locationId, date);
+    const tideForecast = await this.getTideForecast(locationId, date);
+
+    const combinedData: CombinedForecastData = {
+      location,
+      forecasts: {
+        weather: weatherForecast.forecasts.weather,
+        tides: tideForecast.forecasts.tides
+      }
+    };
+
+    return combinedData;
+  }
+
   private generateTidePoints(dayStart: Date): TidePoint[] {
     const tidePoints: TidePoint[] = [];
     
