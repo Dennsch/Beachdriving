@@ -73,7 +73,7 @@ const App: React.FC = () => {
             : [];
 
           // Calculate safety
-          const isSafe = safetyService.isSafeToDrive(tides, qldTargetDate);
+          const isSafe = safetyService.isSafeToDrive(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
           const safeWindows = safetyService.calculateSafeWindows(
             tides,
             qldTargetDate
