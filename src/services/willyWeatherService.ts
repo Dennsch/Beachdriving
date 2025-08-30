@@ -6,6 +6,7 @@ import {
   WeatherData,
   CombinedForecastData,
 } from "../types";
+import { LocalStorageCache } from "./localStorageCache";
 
 const API_KEY = "ZWY2Y2FlZmZlNzQ0NzZhYzI4ZDNiNG";
 // Use Vercel API routes for production, proxy for development
@@ -68,7 +69,7 @@ apiClient.interceptors.response.use(
 
 export class WillyWeatherService {
   private static instance: WillyWeatherService;
-  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private cache: LocalStorageCache;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   public static getInstance(): WillyWeatherService {
@@ -78,20 +79,21 @@ export class WillyWeatherService {
     return WillyWeatherService.instance;
   }
 
+  constructor() {
+    this.cache = LocalStorageCache.getInstance();
+    console.log('🌐 WillyWeatherService initialized with persistent cache');
+  }
+
   private getCacheKey(endpoint: string, params?: any): string {
     return `${endpoint}_${JSON.stringify(params || {})}`;
   }
 
   private getCachedData(key: string): any | null {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached.data;
-    }
-    return null;
+    return this.cache.get(key);
   }
 
   private setCachedData(key: string, data: any): void {
-    this.cache.set(key, { data, timestamp: Date.now() });
+    this.cache.set(key, data, this.CACHE_DURATION);
   }
 
   async getCombinedForecast(
@@ -553,5 +555,39 @@ export class WillyWeatherService {
       }
       return false;
     }
+  }
+
+  // Cache management methods
+  
+  /**
+   * Get cache statistics for debugging and monitoring
+   */
+  getCacheStats() {
+    return this.cache.getStats();
+  }
+
+  /**
+   * Clear all cached data
+   */
+  clearCache(): void {
+    this.cache.clear();
+    console.log('🧹 Weather service cache cleared');
+  }
+
+  /**
+   * Remove specific cache entry
+   */
+  removeCacheEntry(locationId: number, date: string): void {
+    const cacheKey = this.getCacheKey(`combined_${locationId}`, { date });
+    this.cache.remove(cacheKey);
+    console.log(`🗑️ Removed cache entry for location ${locationId}, date ${date}`);
+  }
+
+  /**
+   * Check if data is cached for specific location and date
+   */
+  isCached(locationId: number, date: string): boolean {
+    const cacheKey = this.getCacheKey(`combined_${locationId}`, { date });
+    return this.cache.get(cacheKey) !== null;
   }
 }
