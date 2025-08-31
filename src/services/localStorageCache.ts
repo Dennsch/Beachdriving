@@ -205,13 +205,13 @@ export class LocalStorageCache {
     try {
       if (this.useMemoryFallback) {
         const now = Date.now();
-        for (const [, entry] of this.memoryFallback) {
+        this.memoryFallback.forEach((entry) => {
           totalEntries++;
           if (now > entry.expiresAt) {
             expiredEntries++;
           }
           storageUsed += JSON.stringify(entry).length;
-        }
+        });
       } else {
         const now = Date.now();
         for (let i = 0; i < localStorage.length; i++) {
@@ -276,12 +276,14 @@ export class LocalStorageCache {
       if (this.useMemoryFallback) {
         const now = Date.now();
         let removedCount = 0;
-        for (const [key, entry] of this.memoryFallback) {
+        const keysToDelete: string[] = [];
+        this.memoryFallback.forEach((entry, key) => {
           if (now > entry.expiresAt) {
-            this.memoryFallback.delete(key);
+            keysToDelete.push(key);
             removedCount++;
           }
-        }
+        });
+        keysToDelete.forEach(key => this.memoryFallback.delete(key));
         if (removedCount > 0) {
           console.log(`🧹 Cleaned up ${removedCount} expired memory cache entries`);
         }
@@ -371,9 +373,9 @@ export class LocalStorageCache {
     try {
       if (this.useMemoryFallback) {
         let size = 0;
-        for (const [key, entry] of this.memoryFallback) {
+        this.memoryFallback.forEach((entry, key) => {
           size += key.length + JSON.stringify(entry).length;
-        }
+        });
         return size;
       }
 
