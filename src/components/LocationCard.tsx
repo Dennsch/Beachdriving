@@ -402,7 +402,12 @@ const LocationCard: React.FC<LocationCardProps> = ({
           <div className="weather-info">
             <div className="weather-item">
               <div className="label">Temperature</div>
-              <div className="value">{Math.round(weather.temperature)}°C</div>
+              <div className="value">
+                {weather.minTemperature !== weather.maxTemperature 
+                  ? `${Math.round(weather.minTemperature)}°C - ${Math.round(weather.maxTemperature)}°C`
+                  : `${Math.round(weather.temperature)}°C`
+                }
+              </div>
             </div>
             {Math.abs(weather.apparentTemperature - weather.temperature) >
               2 && (

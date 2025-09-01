@@ -372,6 +372,8 @@ export class WillyWeatherService {
     // Check for different possible field names
     const temperature =
       entry.temp ?? entry.temperature ?? entry.min ?? entry.max ?? 0;
+    const minTemperature = entry.min ?? temperature;
+    const maxTemperature = entry.max ?? temperature;
     const apparentTemperature =
       entry.apparentTemp ??
       entry.apparentTemperature ??
@@ -406,6 +408,8 @@ export class WillyWeatherService {
 
     const weatherData = {
       temperature,
+      minTemperature,
+      maxTemperature,
       apparentTemperature,
       humidity: entry.humidity ?? entry.relativeHumidity ?? 0,
       dewPoint: entry.dewPoint ?? entry.dew_point ?? 0,
@@ -434,6 +438,8 @@ export class WillyWeatherService {
 
     console.log("Created weather data:", {
       temperature: weatherData.temperature,
+      minTemperature: weatherData.minTemperature,
+      maxTemperature: weatherData.maxTemperature,
       apparentTemperature: weatherData.apparentTemperature,
       summary: weatherData.summary,
       windSpeed: weatherData.windSpeed,
