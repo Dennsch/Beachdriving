@@ -279,6 +279,24 @@ export class MockDataService {
     return Object.keys(this.getLocationIds());
   }
 
+  // Cache management methods (no-op for mock service)
+  clearCache(): void {
+    console.log('🧹 Mock service: Cache clear requested (no-op)');
+  }
+
+  removeCacheEntry(locationId: number, date: string): void {
+    console.log(`🗑️ Mock service: Remove cache entry requested for location ${locationId}, date ${date} (no-op)`);
+  }
+
+  getCacheStats(): any {
+    return {
+      totalEntries: 0,
+      expiredEntries: 0,
+      storageUsed: 0,
+      memoryFallbackActive: false
+    };
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

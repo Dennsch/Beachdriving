@@ -7,11 +7,15 @@ import NegativeImage from "../images/Negative.png";
 interface LocationCardProps {
   locationData: LocationData;
   currentTime: Date;
+  onRefresh?: (locationName: string) => void;
+  isRefreshing?: boolean;
 }
 
 const LocationCard: React.FC<LocationCardProps> = ({
   locationData,
   currentTime,
+  onRefresh,
+  isRefreshing = false,
 }) => {
   const { location, weather, tides, isSafe, safeWindows, error, dataSource } = locationData;
 
@@ -180,6 +184,43 @@ const LocationCard: React.FC<LocationCardProps> = ({
             <span style={{ fontSize: "11px", opacity: 0.8 }}>
               {dataSourceInfo.time}
             </span>
+            {onRefresh && (
+              <button
+                onClick={() => !isRefreshing && onRefresh(location.name)}
+                disabled={isRefreshing}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: isRefreshing ? "not-allowed" : "pointer",
+                  padding: "2px",
+                  marginLeft: "4px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "12px",
+                  color: dataSourceInfo.color,
+                  opacity: isRefreshing ? 0.5 : 0.7,
+                  transition: "opacity 0.2s, background-color 0.2s",
+                  animation: isRefreshing ? "spin 1s linear infinite" : "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isRefreshing) {
+                    e.currentTarget.style.opacity = "1";
+                    e.currentTarget.style.backgroundColor = `${dataSourceInfo.color}20`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isRefreshing) {
+                    e.currentTarget.style.opacity = "0.7";
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+                title={isRefreshing ? "Refreshing..." : "Refresh data for this location"}
+              >
+                🔄
+              </button>
+            )}
           </div>
         )}
       </div>

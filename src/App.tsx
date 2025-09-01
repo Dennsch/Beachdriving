@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [showCacheDebug, setShowCacheDebug] = useState<boolean>(false);
   const [cacheStats, setCacheStats] = useState<any>(null);
+  const [refreshingLocations, setRefreshingLocations] = useState<Set<string>>(new Set());
 
   const weatherService = WeatherServiceFactory.getWeatherService();
   const safetyService = SafetyService.getInstance();
@@ -29,6 +30,122 @@ const App: React.FC = () => {
       setCacheStats(stats);
     }
   }, [weatherService]);
+
+  // Refresh data for a specific location
+  const refreshLocationData = useCallback(async (locationName: string) => {
+    // Prevent multiple simultaneous refreshes for the same location
+    if (refreshingLocations.has(locationName)) {
+      return;
+    }
+
+    // Add location to refreshing set
+    setRefreshingLocations(prev => new Set(prev).add(locationName));
+
+    try {
+      const locationIds = weatherService.getLocationIds();
+      const locationId = locationIds[locationName];
+      
+      if (!locationId) {
+        console.error(`Location ID not found for ${locationName}`);
+        return;
+      }
+
+      // Clear any existing error for this location
+      setLocationsData(prevData => 
+        prevData.map(locationData => 
+          locationData.location.name === locationName 
+            ? { ...locationData, error: undefined }
+            : locationData
+        )
+      );
+
+      // Clear cache for this specific location and date to force fresh data
+      if (weatherService && typeof (weatherService as any).removeCacheEntry === 'function') {
+        (weatherService as any).removeCacheEntry(locationId, selectedDate);
+      }
+
+      const targetDate = new Date(selectedDate + "T12:00:00");
+      const qldTargetDate = utcToZonedTime(targetDate, QUEENSLAND_TIMEZONE);
+
+      // Fetch fresh data for this location
+      const combinedResult = await weatherService.getCombinedForecast(
+        locationId,
+        selectedDate
+      );
+      const combinedData = combinedResult.data;
+      const dataSource = combinedResult.dataSource;
+
+      // Extract current weather
+      const weather = combinedData.forecasts.weather
+        ? weatherService.extractCurrentWeather(
+            combinedData,
+            qldTargetDate
+          )
+        : null;
+
+      // Extract tide points
+      const tides = combinedData.forecasts.tides
+        ? weatherService.extractTidePoints({
+            location: combinedData.location,
+            forecasts: { tides: combinedData.forecasts.tides },
+          })
+        : [];
+
+      // Calculate safety
+      const isSafe = safetyService.isSafeToDrive(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
+      const safeWindows = safetyService.calculateSafeWindows(
+        tides,
+        qldTargetDate
+      );
+
+      const updatedLocationData = {
+        location: {
+          ...combinedData.location,
+          name: locationName, // Use hardcoded name instead of API name
+        },
+        weather,
+        tides,
+        isSafe,
+        safeWindows,
+        dataSource, // Include data source metadata
+      } as LocationData;
+
+      // Update the specific location in the state
+      setLocationsData(prevData => 
+        prevData.map(locationData => 
+          locationData.location.name === locationName 
+            ? updatedLocationData 
+            : locationData
+        )
+      );
+
+      // Update cache stats after successful refresh
+      updateCacheStats();
+      
+      console.log(`🔄 Refreshed data for ${locationName}`);
+    } catch (err) {
+      console.error(`Error refreshing data for ${locationName}:`, err);
+      
+      // Update the location with error state
+      setLocationsData(prevData => 
+        prevData.map(locationData => 
+          locationData.location.name === locationName 
+            ? {
+                ...locationData,
+                error: err instanceof Error ? err.message : "Failed to refresh data"
+              }
+            : locationData
+        )
+      );
+    } finally {
+      // Remove location from refreshing set
+      setRefreshingLocations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(locationName);
+        return newSet;
+      });
+    }
+  }, [selectedDate, safetyService, weatherService, updateCacheStats, refreshingLocations]);
 
   const fetchAllLocationData = useCallback(async () => {
     setLoading(true);
@@ -444,6 +561,8 @@ const App: React.FC = () => {
                 key={`${locationData.location.name}-${index}`}
                 locationData={locationData}
                 currentTime={currentTime}
+                onRefresh={refreshLocationData}
+                isRefreshing={refreshingLocations.has(locationData.location.name)}
               />
             ))}
           </div>

@@ -149,6 +149,27 @@ private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 - **Better Responsiveness**: Immediate data display from cache
 - **Offline Capability**: Graceful degradation with cached data
 
+### 6. Refresh Button Enhancement (`src/components/LocationCard.tsx`, `src/App.tsx`)
+
+#### User Interface Enhancement
+- **Refresh Button**: Added refresh icon (🔄) to data source indicator pills
+- **Visual Feedback**: Button spins during refresh operations with loading states
+- **Hover Effects**: Interactive hover states matching indicator pill colors
+- **Accessibility**: Proper ARIA labels and keyboard navigation support
+
+#### Functionality
+- **Per-Location Refresh**: Refresh individual locations without full page reload
+- **Cache Clearing**: Targeted cache entry removal before fetching fresh data
+- **Loading Management**: Prevents multiple simultaneous refreshes per location
+- **Error Handling**: Graceful error handling with user feedback
+- **State Management**: Updates only the specific location's data
+
+#### Technical Implementation
+- **Props Interface**: Added `onRefresh` and `isRefreshing` props to LocationCard
+- **State Tracking**: Uses `refreshingLocations` Set to track loading states
+- **Cache Integration**: Leverages `removeCacheEntry` for targeted cache clearing
+- **Mock Service Support**: Added no-op cache methods to MockDataService for consistency
+
 ## Testing Scenarios
 
 ### Functional Testing
