@@ -3,6 +3,7 @@ import { LocationData } from "../types";
 import { format } from "date-fns";
 import PositiveImage from "../images/Positive.png";
 import NegativeImage from "../images/Negative.png";
+import NeutralImage from "../images/Neutral.png";
 
 interface LocationCardProps {
   locationData: LocationData;
@@ -17,7 +18,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
   onRefresh,
   isRefreshing = false,
 }) => {
-  const { location, weather, tides, isSafe, safeWindows, error, dataSource } = locationData;
+  const { location, weather, tides, isSafe, safetyStatus, safeWindows, error, dataSource } = locationData;
 
   // Helper function to format data source info
   const formatDataSource = () => {
@@ -226,11 +227,11 @@ const LocationCard: React.FC<LocationCardProps> = ({
       </div>
 
       {/* Safety Status */}
-      <div className={`safety-status ${isSafe ? "safe" : "unsafe"}`}>
+      <div className={`safety-status ${safetyStatus === 'safe' ? 'safe' : safetyStatus === 'hurry' ? 'neutral' : 'unsafe'}`}>
         <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
           <img
-            src={isSafe ? PositiveImage : NegativeImage}
-            alt={isSafe ? "Safe to drive" : "Unsafe to drive"}
+            src={safetyStatus === 'safe' ? PositiveImage : safetyStatus === 'hurry' ? NeutralImage : NegativeImage}
+            alt={safetyStatus === 'safe' ? "Safe to drive" : safetyStatus === 'hurry' ? "Hurry up if you want to drive" : "Unsafe to drive"}
             style={{
               width: "100px",
               height: "100px",
@@ -246,11 +247,13 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 marginBottom: "8px",
               }}
             >
-              {isSafe ? "SAFE TO DRIVE" : "UNSAFE TO DRIVE"}
+              {safetyStatus === 'safe' ? "SAFE TO DRIVE" : safetyStatus === 'hurry' ? "HURRY UP!" : "UNSAFE TO DRIVE"}
             </div>
             <div style={{ fontSize: "14px", fontWeight: "normal" }}>
-              {isSafe
+              {safetyStatus === 'safe'
                 ? "Beach driving conditions are currently safe"
+                : safetyStatus === 'hurry'
+                ? "It's getting late if you want to drive you need to hurry"
                 : "Too close to high tide - avoid beach driving"}
             </div>
           </div>

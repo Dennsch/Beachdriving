@@ -208,6 +208,7 @@ export interface LocationData {
   weather: WeatherData | null;
   tides: TidePoint[];
   isSafe: boolean;
+  safetyStatus: 'safe' | 'hurry' | 'unsafe';
   safeWindows: SafeWindow[];
   error?: string;
   dataSource?: DataSourceInfo; // metadata about data source
