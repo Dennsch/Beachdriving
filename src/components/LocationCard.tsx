@@ -18,7 +18,16 @@ const LocationCard: React.FC<LocationCardProps> = ({
   onRefresh,
   isRefreshing = false,
 }) => {
-  const { location, weather, tides, isSafe, safetyStatus, safeWindows, error, dataSource } = locationData;
+  const {
+    location,
+    weather,
+    tides,
+    isSafe,
+    safetyStatus,
+    safeWindows,
+    error,
+    dataSource,
+  } = locationData;
 
   // Helper function to format data source info
   const formatDataSource = () => {
@@ -33,7 +42,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         label: "Live Data",
         time: format(fetchTime, "HH:mm"),
         color: "#27ae60",
-        bgColor: "#d5f4e6"
+        bgColor: "#d5f4e6",
       };
     } else if (dataSource.isFallback) {
       return {
@@ -41,7 +50,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         label: "Cached Data (Network Issue)",
         time: format(fetchTime, "HH:mm 'on' MMM d"),
         color: "#f39c12",
-        bgColor: "#fef9e7"
+        bgColor: "#fef9e7",
       };
     } else {
       return {
@@ -49,7 +58,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         label: isRecent ? "Recent Cache" : "Cached Data",
         time: format(fetchTime, "HH:mm"),
         color: isRecent ? "#27ae60" : "#3498db",
-        bgColor: isRecent ? "#d5f4e6" : "#ebf3fd"
+        bgColor: isRecent ? "#d5f4e6" : "#ebf3fd",
       };
     }
   };
@@ -159,9 +168,16 @@ const LocationCard: React.FC<LocationCardProps> = ({
 
   return (
     <div className="location-card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "15px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "15px",
+        }}
+      >
         <h2 style={{ margin: 0 }}>{location.name}</h2>
-        
+
         {/* Data Source Indicator */}
         {dataSourceInfo && (
           <div
@@ -177,7 +193,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
               color: dataSourceInfo.color,
               border: `1px solid ${dataSourceInfo.color}30`,
               flexShrink: 0,
-              marginLeft: "10px"
+              marginLeft: "10px",
             }}
           >
             <span style={{ fontSize: "10px" }}>{dataSourceInfo.icon}</span>
@@ -217,7 +233,11 @@ const LocationCard: React.FC<LocationCardProps> = ({
                     e.currentTarget.style.backgroundColor = "transparent";
                   }
                 }}
-                title={isRefreshing ? "Refreshing..." : "Refresh data for this location"}
+                title={
+                  isRefreshing
+                    ? "Refreshing..."
+                    : "Refresh data for this location"
+                }
               >
                 🔄
               </button>
@@ -227,13 +247,32 @@ const LocationCard: React.FC<LocationCardProps> = ({
       </div>
 
       {/* Safety Status */}
-      <div className={`safety-status ${safetyStatus === 'safe' ? 'safe' : safetyStatus === 'hurry' ? 'neutral' : 'unsafe'}`}>
+      <div
+        className={`safety-status ${
+          safetyStatus === "safe"
+            ? "safe"
+            : safetyStatus === "hurry"
+            ? "neutral"
+            : "unsafe"
+        }`}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
           <img
-            src={safetyStatus === 'safe' ? PositiveImage : safetyStatus === 'hurry' ? NeutralImage : NegativeImage}
-            alt={safetyStatus === 'safe' ? "Safe to drive" : safetyStatus === 'hurry' ? "Hurry up if you want to drive" : "Unsafe to drive"}
+            src={
+              safetyStatus === "safe"
+                ? PositiveImage
+                : safetyStatus === "hurry"
+                ? NeutralImage
+                : NegativeImage
+            }
+            alt={
+              safetyStatus === "safe"
+                ? "Safe to drive"
+                : safetyStatus === "hurry"
+                ? "Hurry up if you want to drive"
+                : "Unsafe to drive"
+            }
             style={{
-              width: "100px",
               height: "100px",
               objectFit: "contain",
               flexShrink: 0,
@@ -247,12 +286,16 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 marginBottom: "8px",
               }}
             >
-              {safetyStatus === 'safe' ? "SAFE TO DRIVE" : safetyStatus === 'hurry' ? "HURRY UP!" : "UNSAFE TO DRIVE"}
+              {safetyStatus === "safe"
+                ? "SAFE TO DRIVE"
+                : safetyStatus === "hurry"
+                ? "HURRY UP!"
+                : "UNSAFE TO DRIVE"}
             </div>
             <div style={{ fontSize: "14px", fontWeight: "normal" }}>
-              {safetyStatus === 'safe'
+              {safetyStatus === "safe"
                 ? "Beach driving conditions are currently safe"
-                : safetyStatus === 'hurry'
+                : safetyStatus === "hurry"
                 ? "It's getting late if you want to drive you need to hurry"
                 : "Too close to high tide - avoid beach driving"}
             </div>
@@ -283,7 +326,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         </div>
       )}
 
-       {/* Tide Information */}
+      {/* Tide Information */}
       <div className="tide-info">
         <h4>Today's Tides</h4>
         <div className="tide-times">
@@ -307,34 +350,44 @@ const LocationCard: React.FC<LocationCardProps> = ({
       {/* Weather Information */}
       {weather ? (
         <>
-
-         {/* Enhanced Weather Summary */}
-         {weather.summary && (
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '15px', 
-              backgroundColor: '#f0f8ff', 
-              borderRadius: '8px',
-              fontSize: '14px',
-              color: '#2c3e50',
-              border: '1px solid #e3f2fd'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '18px' }}>🌤️</span>
+          {/* Enhanced Weather Summary */}
+          {weather.summary && (
+            <div
+              style={{
+                marginTop: "15px",
+                padding: "15px",
+                backgroundColor: "#f0f8ff",
+                borderRadius: "8px",
+                fontSize: "14px",
+                color: "#2c3e50",
+                border: "1px solid #e3f2fd",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ fontSize: "18px" }}>🌤️</span>
                 <strong>Current Conditions:</strong> {weather.summary}
               </div>
-              
-              
+
               {/* Felt temperature note */}
-              {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  fontSize: '12px', 
-                  color: '#666',
-                  fontStyle: 'italic'
-                }}>
-                  <span style={{ fontSize: '14px' }}>🌡️</span>
-                  {weather.apparentTemperature > weather.temperature 
+              {Math.abs(weather.apparentTemperature - weather.temperature) >
+                2 && (
+                <div
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "12px",
+                    color: "#666",
+                    fontStyle: "italic",
+                  }}
+                >
+                  <span style={{ fontSize: "14px" }}>🌡️</span>
+                  {weather.apparentTemperature > weather.temperature
                     ? ` Feels warmer due to humidity and wind conditions`
                     : ` Feels cooler due to wind chill`}
                 </div>
@@ -348,7 +401,8 @@ const LocationCard: React.FC<LocationCardProps> = ({
               <div className="label">Temperature</div>
               <div className="value">{Math.round(weather.temperature)}°C</div>
             </div>
-            {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
+            {Math.abs(weather.apparentTemperature - weather.temperature) >
+              2 && (
               <div className="weather-item">
                 <div className="label">Feels Like</div>
                 <div className="value">
@@ -356,34 +410,38 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 </div>
               </div>
             )}
-            {weather.rainfallAmount &&weather.rainfallAmount.probability && (
+            {weather.rainfallAmount && weather.rainfallAmount.probability && (
               <div className="weather-item">
                 <div className="label">Rain Chance</div>
-                <div className="value">{weather.rainfallAmount.probability}%</div>
+                <div className="value">
+                  {weather.rainfallAmount.probability}%
+                </div>
               </div>
             )}
-            {weather.rainfallAmount && weather.rainfallAmount.probability > 0 ? (
+            {weather.rainfallAmount &&
+            weather.rainfallAmount.probability > 0 ? (
               <div className="weather-item">
                 <div className="label">Rainfall</div>
                 <div className="value">
-                  {weather.rainfallAmount.startRange !== null && weather.rainfallAmount.endRange !== null
+                  {weather.rainfallAmount.startRange !== null &&
+                  weather.rainfallAmount.endRange !== null
                     ? `${weather.rainfallAmount.startRange}-${weather.rainfallAmount.endRange}mm`
                     : weather.rainfallAmount.endRange !== null
                     ? `${weather.rainfallAmount.rangeDivide}${weather.rainfallAmount.endRange}mm`
-                    : 'Possible'}
+                    : "Possible"}
                 </div>
               </div>
-            ):(weather.windSpeed > 0 && (
-              <div className="weather-item">
-                <div className="label">Wind</div>
-                <div className="value">
-                  {Math.round(weather.windSpeed)} km/h
+            ) : (
+              weather.windSpeed > 0 && (
+                <div className="weather-item">
+                  <div className="label">Wind</div>
+                  <div className="value">
+                    {Math.round(weather.windSpeed)} km/h
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
-
-         
         </>
       ) : (
         <div
@@ -414,10 +472,6 @@ const LocationCard: React.FC<LocationCardProps> = ({
           </div>
         </div>
       )}
-
-     
-
-      
     </div>
   );
 };
