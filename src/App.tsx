@@ -569,6 +569,7 @@ const App: React.FC = () => {
                 currentTime={currentTime}
                 onRefresh={refreshLocationData}
                 isRefreshing={refreshingLocations.has(locationData.location.name)}
+                isToday={isToday}
               />
             ))}
           </div>

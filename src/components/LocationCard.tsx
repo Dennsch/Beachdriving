@@ -10,6 +10,7 @@ interface LocationCardProps {
   currentTime: Date;
   onRefresh?: (locationName: string) => void;
   isRefreshing?: boolean;
+  isToday?: boolean;
 }
 
 const LocationCard: React.FC<LocationCardProps> = ({
@@ -17,12 +18,12 @@ const LocationCard: React.FC<LocationCardProps> = ({
   currentTime,
   onRefresh,
   isRefreshing = false,
+  isToday = true,
 }) => {
   const {
     location,
     weather,
     tides,
-    isSafe,
     safetyStatus,
     safeWindows,
     error,
@@ -246,62 +247,64 @@ const LocationCard: React.FC<LocationCardProps> = ({
         )}
       </div>
 
-      {/* Safety Status */}
-      <div
-        className={`safety-status ${
-          safetyStatus === "safe"
-            ? "safe"
-            : safetyStatus === "hurry"
-            ? "neutral"
-            : "unsafe"
-        }`}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-          <img
-            src={
-              safetyStatus === "safe"
-                ? PositiveImage
-                : safetyStatus === "hurry"
-                ? NeutralImage
-                : NegativeImage
-            }
-            alt={
-              safetyStatus === "safe"
-                ? "Safe to drive"
-                : safetyStatus === "hurry"
-                ? "Hurry up if you want to drive"
-                : "Unsafe to drive"
-            }
-            style={{
-              height: "100px",
-              objectFit: "contain",
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1 }}>
-            <div
+      {/* Safety Status - Only show if not today */}
+      {isToday && (
+        <div
+          className={`safety-status ${
+            safetyStatus === "safe"
+              ? "safe"
+              : safetyStatus === "hurry"
+              ? "neutral"
+              : "unsafe"
+          }`}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <img
+              src={
+                safetyStatus === "safe"
+                  ? PositiveImage
+                  : safetyStatus === "hurry"
+                  ? NeutralImage
+                  : NegativeImage
+              }
+              alt={
+                safetyStatus === "safe"
+                  ? "Safe to drive"
+                  : safetyStatus === "hurry"
+                  ? "Hurry up if you want to drive"
+                  : "Unsafe to drive"
+              }
               style={{
-                fontWeight: "bold",
-                fontSize: "18px",
-                marginBottom: "8px",
+                height: "100px",
+                objectFit: "contain",
+                flexShrink: 0,
               }}
-            >
-              {safetyStatus === "safe"
-                ? "SAFE TO DRIVE"
-                : safetyStatus === "hurry"
-                ? "HURRY UP!"
-                : "UNSAFE TO DRIVE"}
-            </div>
-            <div style={{ fontSize: "14px", fontWeight: "normal" }}>
-              {safetyStatus === "safe"
-                ? "Beach driving conditions are currently safe"
-                : safetyStatus === "hurry"
-                ? "It's getting late if you want to drive you need to hurry"
-                : "Too close to high tide - avoid beach driving"}
+            />
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  marginBottom: "8px",
+                }}
+              >
+                {safetyStatus === "safe"
+                  ? "SAFE TO DRIVE"
+                  : safetyStatus === "hurry"
+                  ? "HURRY UP!"
+                  : "UNSAFE TO DRIVE"}
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: "normal" }}>
+                {safetyStatus === "safe"
+                  ? "Beach driving conditions are currently safe"
+                  : safetyStatus === "hurry"
+                  ? "It's getting late if you want to drive you need to hurry"
+                  : "Too close to high tide - avoid beach driving"}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Safe Driving Windows */}
       {safeWindows.length > 0 && (
