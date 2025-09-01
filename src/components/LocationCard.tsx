@@ -164,8 +164,19 @@ const LocationCard: React.FC<LocationCardProps> = ({
   };
 
   const todaysTides = getTodaysTides();
-  const highTides = todaysTides.filter((tide) => tide.type === "high");
-  const lowTides = todaysTides.filter((tide) => tide.type === "low");
+  // Sort tides chronologically by time (create a new array to avoid mutating original)
+  const sortedTides = [...todaysTides].sort((a, b) => {
+    const dateA = new Date(a.dateTime);
+    const dateB = new Date(b.dateTime);
+    
+    // Handle invalid dates gracefully
+    if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+      console.warn('Invalid tide dateTime found:', { a: a.dateTime, b: b.dateTime });
+      return 0; // Keep original order for invalid dates
+    }
+    
+    return dateA.getTime() - dateB.getTime();
+  });
 
   return (
     <div className="location-card">
@@ -333,16 +344,9 @@ const LocationCard: React.FC<LocationCardProps> = ({
       <div className="tide-info">
         <h4>Today's Tides</h4>
         <div className="tide-times">
-          {highTides.map((tide, index) => (
-            <div key={`high-${index}`} className="tide-time">
-              <div className="type">High Tide</div>
-              <div className="time">{formatTideTime(tide.dateTime)}</div>
-              <div className="height">{formatTideHeight(tide.height)}</div>
-            </div>
-          ))}
-          {lowTides.map((tide, index) => (
-            <div key={`low-${index}`} className="tide-time">
-              <div className="type">Low Tide</div>
+          {sortedTides.map((tide, index) => (
+            <div key={`${tide.type}-${index}`} className="tide-time">
+              <div className="type">{tide.type === "high" ? "High Tide" : "Low Tide"}</div>
               <div className="time">{formatTideTime(tide.dateTime)}</div>
               <div className="height">{formatTideHeight(tide.height)}</div>
             </div>
