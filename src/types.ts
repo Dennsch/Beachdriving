@@ -12,6 +12,8 @@ export interface Location {
 
 export interface WeatherData {
   temperature: number;
+  minTemperature: number;
+  maxTemperature: number;
   apparentTemperature: number;
   humidity: number;
   dewPoint: number;

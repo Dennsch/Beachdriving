@@ -296,8 +296,14 @@ export class MockDataService {
     }
 
     const entry = combinedForecast.forecasts.weather.days[0].entries[0];
+    const temperature = entry.temp ?? 0;
+    const minTemperature = entry.min ?? temperature;
+    const maxTemperature = entry.max ?? temperature;
+    
     return {
-      temperature: entry.temp ?? 0,
+      temperature,
+      minTemperature,
+      maxTemperature,
       apparentTemperature: entry.apparentTemp ?? entry.temp ?? 0,
       humidity: entry.humidity ?? 0,
       dewPoint: entry.dewPoint ?? 0,
