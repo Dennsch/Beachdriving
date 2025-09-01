@@ -195,6 +195,14 @@ export interface SafeWindow {
   duration: string;
 }
 
+export interface DataSourceInfo {
+  isLive: boolean; // true if from API, false if from cache
+  fetchedAt: number; // timestamp when data was originally fetched from API
+  retrievedAt: number; // timestamp when data was retrieved (could be from cache)
+  cacheUsed: boolean; // true if cache was used (either fresh or fallback)
+  isFallback: boolean; // true if cache was used due to network failure
+}
+
 export interface LocationData {
   location: Location;
   weather: WeatherData | null;
@@ -202,4 +210,5 @@ export interface LocationData {
   isSafe: boolean;
   safeWindows: SafeWindow[];
   error?: string;
+  dataSource?: DataSourceInfo; // metadata about data source
 }

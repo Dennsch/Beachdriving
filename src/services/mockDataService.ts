@@ -1,4 +1,4 @@
-import { Location, WeatherData, TidePoint, WeatherForecast, TideData, CombinedForecastData } from '../types';
+import { Location, WeatherData, TidePoint, WeatherForecast, TideData, CombinedForecastData, DataSourceInfo } from '../types';
 import { addHours, startOfDay } from 'date-fns';
 
 export class MockDataService {
@@ -149,7 +149,7 @@ export class MockDataService {
     return mockTideData;
   }
 
-  async getCombinedForecast(locationId: number, date: string): Promise<CombinedForecastData> {
+  async getCombinedForecast(locationId: number, date: string): Promise<{ data: CombinedForecastData; dataSource: DataSourceInfo }> {
     await this.delay(700);
     
     const location = this.locations[locationId];
@@ -169,7 +169,16 @@ export class MockDataService {
       }
     };
 
-    return combinedData;
+    const now = Date.now();
+    const dataSource: DataSourceInfo = {
+      isLive: true, // Mock service simulates live data
+      fetchedAt: now,
+      retrievedAt: now,
+      cacheUsed: false,
+      isFallback: false
+    };
+
+    return { data: combinedData, dataSource };
   }
 
   private generateTidePoints(dayStart: Date): TidePoint[] {

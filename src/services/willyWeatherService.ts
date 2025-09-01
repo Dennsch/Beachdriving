@@ -5,6 +5,7 @@ import {
   TidePoint,
   WeatherData,
   CombinedForecastData,
+  DataSourceInfo,
 } from "../types";
 import { LocalStorageCache } from "./localStorageCache";
 
@@ -92,19 +93,21 @@ export class WillyWeatherService {
     return this.cache.get(key);
   }
 
-  private setCachedData(key: string, data: any): void {
-    this.cache.set(key, data, this.CACHE_DURATION);
+  private setCachedData(key: string, data: any, originalFetchTime?: number, isFromAPI: boolean = true): void {
+    this.cache.set(key, data, this.CACHE_DURATION, originalFetchTime, isFromAPI);
   }
 
   async getCombinedForecast(
     locationId: number,
     date: string
-  ): Promise<CombinedForecastData> {
+  ): Promise<{ data: CombinedForecastData; dataSource: DataSourceInfo }> {
     const cacheKey = this.getCacheKey(`combined_${locationId}`, { date });
-    const cached = this.getCachedData(cacheKey);
-    if (cached) return cached;
+    const now = Date.now();
 
     try {
+      // Always try API first (API-first strategy)
+      console.log(`🌐 Attempting API call for location ${locationId}, date ${date}`);
+      
       const url =
         process.env.NODE_ENV === "production"
           ? `${BASE_URL}/weather?locationId=${locationId}`
@@ -134,13 +137,49 @@ export class WillyWeatherService {
       }
 
       const combinedData = this.validateCombinedData(response.data);
-      this.setCachedData(cacheKey, combinedData);
-      return combinedData;
+      
+      // Store in cache with API metadata
+      this.setCachedData(cacheKey, combinedData, now, true);
+      
+      console.log(`✅ API call successful for location ${locationId}`);
+      
+      return {
+        data: combinedData,
+        dataSource: {
+          isLive: true,
+          fetchedAt: now,
+          retrievedAt: now,
+          cacheUsed: false,
+          isFallback: false
+        }
+      };
     } catch (error) {
       console.error(
-        `Error fetching combined forecast for location ${locationId}:`,
+        `❌ API call failed for location ${locationId}:`,
         error
       );
+      
+      // API failed, try cache fallback
+      console.log(`🔄 Attempting cache fallback for location ${locationId}`);
+      const cacheResult = this.cache.getWithMetadata(cacheKey);
+      
+      if (cacheResult.data) {
+        console.log(`📦 Using ${cacheResult.isExpired ? 'expired' : 'fresh'} cache data as fallback for location ${locationId}`);
+        
+        return {
+          data: cacheResult.data,
+          dataSource: {
+            isLive: false,
+            fetchedAt: cacheResult.originalFetchTime || 0,
+            retrievedAt: now,
+            cacheUsed: true,
+            isFallback: true
+          }
+        };
+      }
+      
+      // No cache available, throw the original error
+      console.error(`💥 No cache fallback available for location ${locationId}`);
       if (error instanceof AxiosError) {
         console.error("Combined API error details:", {
           status: error.response?.status,
@@ -163,7 +202,8 @@ export class WillyWeatherService {
     date: string
   ): Promise<WeatherForecast> {
     // Use the combined forecast and extract weather data
-    const combinedData = await this.getCombinedForecast(locationId, date);
+    const combinedResult = await this.getCombinedForecast(locationId, date);
+    const combinedData = combinedResult.data;
 
     if (!combinedData.forecasts.weather) {
       throw new Error("No weather data available in combined forecast");
@@ -179,7 +219,8 @@ export class WillyWeatherService {
 
   async getTideForecast(locationId: number, date: string): Promise<TideData> {
     // Use the combined forecast and extract tide data
-    const combinedData = await this.getCombinedForecast(locationId, date);
+    const combinedResult = await this.getCombinedForecast(locationId, date);
+    const combinedData = combinedResult.data;
 
     if (!combinedData.forecasts.tides) {
       throw new Error(
@@ -511,11 +552,11 @@ export class WillyWeatherService {
       );
 
       console.log("Combined API test successful:", {
-        location: combinedData.location?.name,
-        hasWeather: !!combinedData.forecasts?.weather,
-        hasTides: !!combinedData.forecasts?.tides,
-        weatherDays: combinedData.forecasts?.weather?.days?.length || 0,
-        tideDays: combinedData.forecasts?.tides?.days?.length || 0,
+        location: combinedData.data.location?.name,
+        hasWeather: !!combinedData.data.forecasts?.weather,
+        hasTides: !!combinedData.data.forecasts?.tides,
+        weatherDays: combinedData.data.forecasts?.weather?.days?.length || 0,
+        tideDays: combinedData.data.forecasts?.tides?.days?.length || 0,
       });
 
       return true;
