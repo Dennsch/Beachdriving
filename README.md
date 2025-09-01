@@ -14,6 +14,7 @@ A React TypeScript application that helps determine safe beach driving condition
 - **Safe Driving Windows**: Calculates optimal time periods for beach driving
 - **Date Selection**: View conditions for future dates (through the end of next month)
 - **Queensland Timezone**: All times displayed in Australian Eastern Time
+- **🆕 Persistent Caching**: Local storage caching reduces API calls and improves performance
 
 ## Safety Rules
 
@@ -34,14 +35,37 @@ The app follows the **2-hour rule**: Beach driving is considered unsafe within 2
 3. **Open in Browser**
    Navigate to `http://localhost:3000`
 
-## API Integration
+## API Integration & Caching
 
 This app integrates with the Willy Weather API to fetch:
 - Current weather conditions
 - Tide forecasts and timing
 - Location-specific data
 
-The API key is embedded in the application for the specified locations.
+### 🚀 Smart Caching System
+
+The application now features a sophisticated caching system that:
+
+- **Persists data across browser sessions** using localStorage
+- **Reduces API calls** by caching responses for 5 minutes
+- **Automatically cleans up expired entries** to prevent storage bloat
+- **Falls back to memory cache** if localStorage is unavailable
+- **Provides cache statistics** for monitoring and debugging
+
+#### Cache Features:
+- ✅ **Persistent Storage**: Data survives page refreshes and browser restarts
+- ✅ **Automatic Expiration**: Cached data expires after 5 minutes
+- ✅ **Storage Management**: Automatically manages storage quota and cleanup
+- ✅ **Fallback Support**: Uses memory cache when localStorage is unavailable
+- ✅ **Debug Interface**: Toggle cache statistics display for monitoring
+
+#### Cache Debug Panel:
+Click "Show Cache Info" in the app to view:
+- Total cached entries
+- Expired entries count
+- Storage space used
+- Memory fallback status
+- Manual cache clearing options
 
 ## Technology Stack
 
@@ -50,21 +74,24 @@ The API key is embedded in the application for the specified locations.
 - **axios** for API requests
 - **CSS Grid & Flexbox** for responsive layout
 - **Willy Weather API** for weather and tide data
+- **🆕 LocalStorage API** for persistent caching
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   └── LocationCard.tsx      # Individual location display component
+│   └── LocationCard.tsx          # Individual location display component
 ├── services/
-│   ├── willyWeatherService.ts # API integration service
-│   └── safetyService.ts       # Safety calculation logic
-├── types.ts                   # TypeScript type definitions
-├── App.tsx                    # Main application component
-├── App.css                    # Application-specific styles
-├── index.tsx                  # React entry point
-└── index.css                  # Global styles
+│   ├── willyWeatherService.ts    # API integration service with caching
+│   ├── localStorageCache.ts      # 🆕 Persistent cache service
+│   ├── weatherServiceFactory.ts  # Service factory pattern
+│   └── safetyService.ts          # Safety calculation logic
+├── types.ts                      # TypeScript type definitions
+├── App.tsx                       # Main application component
+├── App.css                       # Application-specific styles
+├── index.tsx                     # React entry point
+└── index.css                     # Global styles
 ```
 
 ## Usage
@@ -75,6 +102,15 @@ src/
 4. **Safe Windows**: View optimal driving times for the selected day
 5. **Weather Details**: Check temperature, rain probability, and wind conditions
 6. **Tide Times**: See high and low tide times and heights
+7. **🆕 Cache Monitoring**: Toggle cache info to monitor API usage and performance
+
+## Performance Benefits
+
+With the new caching system:
+- **Faster Loading**: Subsequent visits load instantly from cache
+- **Reduced API Usage**: Fewer API calls mean better performance and lower costs
+- **Offline Resilience**: Recently viewed data remains available even with poor connectivity
+- **Better User Experience**: Smooth navigation between dates and locations
 
 ## Safety Disclaimer
 
@@ -101,12 +137,19 @@ To add new beach locations:
 2. Add to the `LOCATIONS` object in `willyWeatherService.ts`
 3. The app will automatically include the new location
 
+### Cache Configuration
+
+The cache system can be configured in `localStorageCache.ts`:
+- `CACHE_DURATION`: How long data stays cached (default: 5 minutes)
+- `MAX_STORAGE_SIZE`: Maximum localStorage usage (default: 5MB)
+- `CLEANUP_INTERVAL`: How often to clean expired entries (default: 1 hour)
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Test thoroughly (including cache functionality)
 5. Submit a pull request
 
 ## License
