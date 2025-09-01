@@ -226,7 +226,7 @@ export class MockDataService {
 
         case 4990: // Moreton Island - HURRY (high tide in 2.5 hours)
           // Set high tide in hurry window (2-3 hours from now)
-          highTideHours = [currentHour + 2.5, currentHour + 14.5]; // 2.5 hours from now
+          highTideHours = [currentHour + 3, currentHour + 14.5]; // 2.5 hours from now
           console.log(
             "🟡 Mock: Moreton Island set to HURRY - high tide in 2.5 hours"
           );
