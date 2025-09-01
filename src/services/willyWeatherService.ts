@@ -552,11 +552,11 @@ export class WillyWeatherService {
       );
 
       console.log("Combined API test successful:", {
-        location: combinedData.location?.name,
-        hasWeather: !!combinedData.forecasts?.weather,
-        hasTides: !!combinedData.forecasts?.tides,
-        weatherDays: combinedData.forecasts?.weather?.days?.length || 0,
-        tideDays: combinedData.forecasts?.tides?.days?.length || 0,
+        location: combinedData.data.location?.name,
+        hasWeather: !!combinedData.data.forecasts?.weather,
+        hasTides: !!combinedData.data.forecasts?.tides,
+        weatherDays: combinedData.data.forecasts?.weather?.days?.length || 0,
+        tideDays: combinedData.data.forecasts?.tides?.days?.length || 0,
       });
 
       return true;
