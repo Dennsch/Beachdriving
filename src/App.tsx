@@ -416,7 +416,7 @@ const App: React.FC = () => {
           </div>
           
           {/* Cache Debug Toggle */}
-          <div style={{ marginTop: "10px" }}>
+          {/* <div style={{ marginTop: "10px" }}>
             <button
               onClick={toggleCacheDebug}
               style={{
@@ -431,7 +431,7 @@ const App: React.FC = () => {
             >
               {showCacheDebug ? "Hide" : "Show"} Cache Info
             </button>
-          </div>
+          </div> */}
         </header>
 
         {/* Cache Debug Panel */}
