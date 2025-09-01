@@ -1,8 +1,9 @@
 import { WillyWeatherService } from './willyWeatherService';
 import { MockDataService } from './mockDataService';
+import { DataSourceInfo } from '../types';
 
 export interface WeatherServiceInterface {
-  getCombinedForecast(locationId: number, date: string): Promise<any>;
+  getCombinedForecast(locationId: number, date: string): Promise<{ data: any; dataSource: DataSourceInfo }>;
   extractCurrentWeather(combinedForecast: any, targetDateTime: Date): any;
   extractTidePoints(tideData: any): any[];
   getLocationIds(): { [key: string]: number };

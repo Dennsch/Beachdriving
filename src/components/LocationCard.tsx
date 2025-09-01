@@ -13,7 +13,43 @@ const LocationCard: React.FC<LocationCardProps> = ({
   locationData,
   currentTime,
 }) => {
-  const { location, weather, tides, isSafe, safeWindows, error } = locationData;
+  const { location, weather, tides, isSafe, safeWindows, error, dataSource } = locationData;
+
+  // Helper function to format data source info
+  const formatDataSource = () => {
+    if (!dataSource) return null;
+
+    const fetchTime = new Date(dataSource.fetchedAt);
+    const isRecent = Date.now() - dataSource.fetchedAt < 10 * 60 * 1000; // 10 minutes
+
+    if (dataSource.isLive) {
+      return {
+        icon: "🟢",
+        label: "Live Data",
+        time: format(fetchTime, "HH:mm"),
+        color: "#27ae60",
+        bgColor: "#d5f4e6"
+      };
+    } else if (dataSource.isFallback) {
+      return {
+        icon: "🟡",
+        label: "Cached Data (Network Issue)",
+        time: format(fetchTime, "HH:mm 'on' MMM d"),
+        color: "#f39c12",
+        bgColor: "#fef9e7"
+      };
+    } else {
+      return {
+        icon: isRecent ? "🟢" : "🔵",
+        label: isRecent ? "Recent Cache" : "Cached Data",
+        time: format(fetchTime, "HH:mm"),
+        color: isRecent ? "#27ae60" : "#3498db",
+        bgColor: isRecent ? "#d5f4e6" : "#ebf3fd"
+      };
+    }
+  };
+
+  const dataSourceInfo = formatDataSource();
 
   if (error) {
     return (
@@ -118,7 +154,35 @@ const LocationCard: React.FC<LocationCardProps> = ({
 
   return (
     <div className="location-card">
-      <h2>{location.name}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "15px" }}>
+        <h2 style={{ margin: 0 }}>{location.name}</h2>
+        
+        {/* Data Source Indicator */}
+        {dataSourceInfo && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              backgroundColor: dataSourceInfo.bgColor,
+              borderRadius: "20px",
+              fontSize: "12px",
+              fontWeight: "500",
+              color: dataSourceInfo.color,
+              border: `1px solid ${dataSourceInfo.color}30`,
+              flexShrink: 0,
+              marginLeft: "10px"
+            }}
+          >
+            <span style={{ fontSize: "10px" }}>{dataSourceInfo.icon}</span>
+            <span>{dataSourceInfo.label}</span>
+            <span style={{ fontSize: "11px", opacity: 0.8 }}>
+              {dataSourceInfo.time}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Safety Status */}
       <div className={`safety-status ${isSafe ? "safe" : "unsafe"}`}>

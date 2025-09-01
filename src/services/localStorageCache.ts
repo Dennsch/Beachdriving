@@ -7,8 +7,18 @@
 
 interface CacheEntry<T = any> {
   data: T;
-  timestamp: number;
+  timestamp: number; // when data was stored in cache
   expiresAt: number;
+  originalFetchTime: number; // when data was originally fetched from API
+  isFromAPI: boolean; // true if data came from API, false if from another source
+}
+
+interface CacheRetrievalResult<T = any> {
+  data: T | null;
+  isExpired: boolean;
+  originalFetchTime?: number;
+  isFromAPI?: boolean;
+  cacheTimestamp?: number;
 }
 
 interface CacheStats {
@@ -63,6 +73,41 @@ export class LocalStorageCache {
   }
 
   /**
+   * Get cached data with detailed metadata for fallback scenarios
+   */
+  public getWithMetadata<T = any>(key: string): CacheRetrievalResult<T> {
+    const cacheKey = this.CACHE_PREFIX + key;
+    const now = Date.now();
+
+    try {
+      if (this.useMemoryFallback) {
+        return this.getFromMemoryWithMetadata<T>(key);
+      }
+
+      const cached = localStorage.getItem(cacheKey);
+      if (!cached) {
+        return { data: null, isExpired: false };
+      }
+
+      const entry: CacheEntry<T> = JSON.parse(cached);
+      const isExpired = now > entry.expiresAt;
+      
+      console.log(`📦 Cache ${isExpired ? 'EXPIRED' : 'HIT'} for key: ${key} (${isExpired ? 'fallback available' : 'fresh'})`);
+      
+      return {
+        data: entry.data,
+        isExpired,
+        originalFetchTime: entry.originalFetchTime,
+        isFromAPI: entry.isFromAPI,
+        cacheTimestamp: entry.timestamp
+      };
+    } catch (error) {
+      console.error('Error reading from cache with metadata:', error);
+      return this.getFromMemoryWithMetadata<T>(key);
+    }
+  }
+
+  /**
    * Get cached data if it exists and hasn't expired
    */
   public get<T = any>(key: string): T | null {
@@ -96,14 +141,17 @@ export class LocalStorageCache {
   }
 
   /**
-   * Store data in cache with expiration
+   * Store data in cache with expiration and source metadata
    */
-  public set<T = any>(key: string, data: T, durationMs: number): void {
+  public set<T = any>(key: string, data: T, durationMs: number, originalFetchTime?: number, isFromAPI: boolean = true): void {
     const cacheKey = this.CACHE_PREFIX + key;
+    const now = Date.now();
     const entry: CacheEntry<T> = {
       data,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + durationMs
+      timestamp: now,
+      expiresAt: now + durationMs,
+      originalFetchTime: originalFetchTime || now,
+      isFromAPI
     };
 
     try {
@@ -248,6 +296,26 @@ export class LocalStorageCache {
   /**
    * Memory fallback methods
    */
+  private getFromMemoryWithMetadata<T = any>(key: string): CacheRetrievalResult<T> {
+    const entry = this.memoryFallback.get(key);
+    if (!entry) {
+      return { data: null, isExpired: false };
+    }
+
+    const now = Date.now();
+    const isExpired = now > entry.expiresAt;
+
+    console.log(`📦 Memory cache ${isExpired ? 'EXPIRED' : 'HIT'} for key: ${key} (${isExpired ? 'fallback available' : 'fresh'})`);
+    
+    return {
+      data: entry.data,
+      isExpired,
+      originalFetchTime: entry.originalFetchTime,
+      isFromAPI: entry.isFromAPI,
+      cacheTimestamp: entry.timestamp
+    };
+  }
+
   private getFromMemory<T = any>(key: string): T | null {
     const entry = this.memoryFallback.get(key);
     if (!entry) {

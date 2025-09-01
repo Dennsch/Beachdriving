@@ -47,10 +47,12 @@ const App: React.FC = () => {
 
         try {
           // Fetch combined weather and tide data (includes location info)
-          const combinedData = await weatherService.getCombinedForecast(
+          const combinedResult = await weatherService.getCombinedForecast(
             locationId,
             selectedDate
           );
+          const combinedData = combinedResult.data;
+          const dataSource = combinedResult.dataSource;
 
           // Extract current weather
           const weather = combinedData.forecasts.weather
@@ -86,6 +88,7 @@ const App: React.FC = () => {
             tides,
             isSafe,
             safeWindows,
+            dataSource, // Include data source metadata
           } as LocationData;
         } catch (err) {
           console.error(`Error fetching data for ${locationName}:`, err);
