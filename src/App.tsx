@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { format, addMonths, endOfMonth } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import LocationCard from "./components/LocationCard";
+import PayPalButton from "./components/PayPalButton";
 import { WeatherServiceFactory } from "./services/weatherServiceFactory";
 import { SafetyService } from "./services/safetyService";
 import { LocationData, Location } from "./types";
@@ -491,6 +492,13 @@ const App: React.FC = () => {
             regulations before beach driving. Drive at your own risk.
           </p>
         </div>
+
+        {/* Buy Me a Coffee PayPal Button */}
+        <PayPalButton 
+          amount="5.00" 
+          currency="USD" 
+          description="Support Beach Driving Safety App ☕" 
+        />
       </div>
 
       <style>{`

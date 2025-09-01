@@ -15,6 +15,7 @@ A React TypeScript application that helps determine safe beach driving condition
 - **Date Selection**: View conditions for future dates (through the end of next month)
 - **Queensland Timezone**: All times displayed in Australian Eastern Time
 - **🆕 Persistent Caching**: Local storage caching reduces API calls and improves performance
+- **☕ Buy Me a Coffee**: PayPal-powered donation button to support the app's development
 
 ## Safety Rules
 
@@ -27,12 +28,32 @@ The app follows the **2-hour rule**: Beach driving is considered unsafe within 2
    npm install
    ```
 
-2. **Start Development Server**
+2. **Configure PayPal (Optional)**
+   
+   To enable the "Buy Me a Coffee" donation button:
+   
+   a. **Get PayPal Client ID**:
+      - Visit [PayPal Developer Dashboard](https://developer.paypal.com/developer/applications/)
+      - Create a new app or use an existing one
+      - Copy your Client ID
+   
+   b. **Set Environment Variable**:
+      ```bash
+      # Copy the example environment file
+      cp .env.example .env
+      
+      # Edit .env and replace with your PayPal Client ID
+      REACT_APP_PAYPAL_CLIENT_ID=your-actual-paypal-client-id-here
+      ```
+   
+   c. **For Testing**: Use PayPal's sandbox environment for development
+
+3. **Start Development Server**
    ```bash
    npm start
    ```
 
-3. **Open in Browser**
+4. **Open in Browser**
    Navigate to `http://localhost:3000`
 
 ## API Integration & Caching
@@ -75,13 +96,15 @@ Click "Show Cache Info" in the app to view:
 - **CSS Grid & Flexbox** for responsive layout
 - **Willy Weather API** for weather and tide data
 - **🆕 LocalStorage API** for persistent caching
+- **☕ PayPal JavaScript SDK** for donation processing
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   └── LocationCard.tsx          # Individual location display component
+│   ├── LocationCard.tsx          # Individual location display component
+│   └── PayPalButton.tsx          # ☕ PayPal donation button component
 ├── services/
 │   ├── willyWeatherService.ts    # API integration service with caching
 │   ├── localStorageCache.ts      # 🆕 Persistent cache service
