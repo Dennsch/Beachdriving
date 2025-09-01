@@ -152,9 +152,89 @@ const LocationCard: React.FC<LocationCardProps> = ({
         </div>
       </div>
 
+      {/* Safe Driving Windows */}
+      {safeWindows.length > 0 && (
+        <div className="safe-windows">
+          <h3>Safe Driving Windows Today</h3>
+          <ul>
+            {safeWindows.map((window, index) => (
+              <li key={index}>
+                {window.start} - {window.end} ({window.duration})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {safeWindows.length === 0 && (
+        <div className="safe-windows">
+          <h3>Safe Driving Windows Today</h3>
+          <p style={{ color: "#e74c3c", fontStyle: "italic" }}>
+            No safe driving windows available today due to tide conditions.
+          </p>
+        </div>
+      )}
+
+       {/* Tide Information */}
+      <div className="tide-info">
+        <h4>Today's Tides</h4>
+        <div className="tide-times">
+          {highTides.map((tide, index) => (
+            <div key={`high-${index}`} className="tide-time">
+              <div className="type">High Tide</div>
+              <div className="time">{formatTideTime(tide.dateTime)}</div>
+              <div className="height">{formatTideHeight(tide.height)}</div>
+            </div>
+          ))}
+          {lowTides.map((tide, index) => (
+            <div key={`low-${index}`} className="tide-time">
+              <div className="type">Low Tide</div>
+              <div className="time">{formatTideTime(tide.dateTime)}</div>
+              <div className="height">{formatTideHeight(tide.height)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Weather Information */}
       {weather ? (
         <>
+
+         {/* Enhanced Weather Summary */}
+         {weather.summary && (
+            <div style={{ 
+              marginTop: '15px', 
+              padding: '15px', 
+              backgroundColor: '#f0f8ff', 
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: '#2c3e50',
+              border: '1px solid #e3f2fd'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🌤️</span>
+                <strong>Current Conditions:</strong> {weather.summary}
+              </div>
+              
+              
+              {/* Felt temperature note */}
+              {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
+                <div style={{ 
+                  marginTop: '8px', 
+                  fontSize: '12px', 
+                  color: '#666',
+                  fontStyle: 'italic'
+                }}>
+                  <span style={{ fontSize: '14px' }}>🌡️</span>
+                  {weather.apparentTemperature > weather.temperature 
+                    ? ` Feels warmer due to humidity and wind conditions`
+                    : ` Feels cooler due to wind chill`}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Weather Summary */}
           <div className="weather-info">
             <div className="weather-item">
               <div className="label">Temperature</div>
@@ -195,39 +275,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
             ))}
           </div>
 
-          {/* Enhanced Weather Summary */}
-          {weather.summary && (
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '15px', 
-              backgroundColor: '#f0f8ff', 
-              borderRadius: '8px',
-              fontSize: '14px',
-              color: '#2c3e50',
-              border: '1px solid #e3f2fd'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '18px' }}>🌤️</span>
-                <strong>Current Conditions:</strong> {weather.summary}
-              </div>
-              
-              
-              {/* Felt temperature note */}
-              {Math.abs(weather.apparentTemperature - weather.temperature) > 2 && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  fontSize: '12px', 
-                  color: '#666',
-                  fontStyle: 'italic'
-                }}>
-                  <span style={{ fontSize: '14px' }}>🌡️</span>
-                  {weather.apparentTemperature > weather.temperature 
-                    ? ` Feels warmer due to humidity and wind conditions`
-                    : ` Feels cooler due to wind chill`}
-                </div>
-              )}
-            </div>
-          )}
+         
         </>
       ) : (
         <div
@@ -259,49 +307,9 @@ const LocationCard: React.FC<LocationCardProps> = ({
         </div>
       )}
 
-      {/* Tide Information */}
-      <div className="tide-info">
-        <h4>Today's Tides</h4>
-        <div className="tide-times">
-          {highTides.map((tide, index) => (
-            <div key={`high-${index}`} className="tide-time">
-              <div className="type">High Tide</div>
-              <div className="time">{formatTideTime(tide.dateTime)}</div>
-              <div className="height">{formatTideHeight(tide.height)}</div>
-            </div>
-          ))}
-          {lowTides.map((tide, index) => (
-            <div key={`low-${index}`} className="tide-time">
-              <div className="type">Low Tide</div>
-              <div className="time">{formatTideTime(tide.dateTime)}</div>
-              <div className="height">{formatTideHeight(tide.height)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+     
 
-      {/* Safe Driving Windows */}
-      {safeWindows.length > 0 && (
-        <div className="safe-windows">
-          <h3>Safe Driving Windows Today</h3>
-          <ul>
-            {safeWindows.map((window, index) => (
-              <li key={index}>
-                {window.start} - {window.end} ({window.duration})
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {safeWindows.length === 0 && (
-        <div className="safe-windows">
-          <h3>Safe Driving Windows Today</h3>
-          <p style={{ color: "#e74c3c", fontStyle: "italic" }}>
-            No safe driving windows available today due to tide conditions.
-          </p>
-        </div>
-      )}
+      
     </div>
   );
 };
