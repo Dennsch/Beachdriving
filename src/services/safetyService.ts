@@ -5,6 +5,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 const QUEENSLAND_TIMEZONE = 'Australia/Brisbane';
 const UNSAFE_HOURS_BEFORE_HIGH_TIDE = 2;
 const UNSAFE_HOURS_AFTER_HIGH_TIDE = 2;
+const HURRY_UP_HOURS_BEFORE_HIGH_TIDE = 3;
 
 export class SafetyService {
   private static instance: SafetyService;
@@ -14,6 +15,43 @@ export class SafetyService {
       SafetyService.instance = new SafetyService();
     }
     return SafetyService.instance;
+  }
+
+  /**
+   * Determines if it's currently in the "hurry up" window (between 3h and 2h before high tide)
+   */
+  isHurryUpTime(tidePoints: TidePoint[], currentTime: Date): boolean {
+    const highTides = tidePoints.filter(tide => tide.type === 'high');
+    
+    for (const highTide of highTides) {
+      const tideTime = new Date(highTide.dateTime);
+      const hurryUpStart = subHours(tideTime, HURRY_UP_HOURS_BEFORE_HIGH_TIDE);
+      const hurryUpEnd = subHours(tideTime, UNSAFE_HOURS_BEFORE_HIGH_TIDE);
+      
+      if (isWithinInterval(currentTime, { start: hurryUpStart, end: hurryUpEnd })) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Gets the safety status as a string: 'safe', 'hurry', or 'unsafe'
+   */
+  getSafetyStatus(tidePoints: TidePoint[], currentTime: Date): 'safe' | 'hurry' | 'unsafe' {
+    // Check if unsafe first (within 2h of high tide)
+    if (!this.isSafeToDrive(tidePoints, currentTime)) {
+      return 'unsafe';
+    }
+    
+    // Check if in hurry-up window (3h-2h before high tide)
+    if (this.isHurryUpTime(tidePoints, currentTime)) {
+      return 'hurry';
+    }
+    
+    // Otherwise it's safe
+    return 'safe';
   }
 
   /**

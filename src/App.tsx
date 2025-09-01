@@ -94,6 +94,7 @@ const App: React.FC = () => {
 
       // Calculate safety
       const isSafe = safetyService.isSafeToDrive(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
+      const safetyStatus = safetyService.getSafetyStatus(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
       const safeWindows = safetyService.calculateSafeWindows(
         tides,
         qldTargetDate
@@ -107,6 +108,7 @@ const App: React.FC = () => {
         weather,
         tides,
         isSafe,
+        safetyStatus,
         safeWindows,
         dataSource, // Include data source metadata
       } as LocationData;
@@ -192,6 +194,7 @@ const App: React.FC = () => {
 
           // Calculate safety
           const isSafe = safetyService.isSafeToDrive(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
+          const safetyStatus = safetyService.getSafetyStatus(tides, utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE));
           const safeWindows = safetyService.calculateSafeWindows(
             tides,
             qldTargetDate
@@ -205,6 +208,7 @@ const App: React.FC = () => {
             weather,
             tides,
             isSafe,
+            safetyStatus,
             safeWindows,
             dataSource, // Include data source metadata
           } as LocationData;
@@ -227,6 +231,7 @@ const App: React.FC = () => {
             weather: null,
             tides: [],
             isSafe: false,
+            safetyStatus: 'unsafe' as const,
             safeWindows: [],
             error: err instanceof Error ? err.message : "Failed to fetch data",
           } as LocationData;
