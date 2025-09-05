@@ -8,9 +8,11 @@ import {
   DataSourceInfo,
 } from "../types";
 import { addHours, startOfDay } from "date-fns";
+import { TowCompanyService } from "./towCompanyService";
 
 export class MockDataService {
   private static instance: MockDataService;
+  private towCompanyService: TowCompanyService;
 
   public static getInstance(): MockDataService {
     if (!MockDataService.instance) {
@@ -19,41 +21,53 @@ export class MockDataService {
     return MockDataService.instance;
   }
 
-  private locations: { [key: number]: Location } = {
-    4988: {
-      id: 4988,
-      name: "Bribie Island",
-      region: "Moreton Bay",
-      state: "QLD",
-      postcode: "4507",
-      timeZone: "Australia/Brisbane",
-      lat: -27.0833,
-      lng: 153.1667,
-      typeId: 2,
-    },
-    4990: {
-      id: 4990,
-      name: "Moreton Island",
-      region: "Moreton Bay",
-      state: "QLD",
-      postcode: "4025",
-      timeZone: "Australia/Brisbane",
-      lat: -27.1667,
-      lng: 153.4,
-      typeId: 2,
-    },
-    4989: {
-      id: 4989,
-      name: "North Stradbroke Island",
-      region: "Redland City",
-      state: "QLD",
-      postcode: "4183",
-      timeZone: "Australia/Brisbane",
-      lat: -27.5,
-      lng: 153.4167,
-      typeId: 2,
-    },
-  };
+  private locations: { [key: number]: Location } = {};
+
+  constructor() {
+    this.towCompanyService = TowCompanyService.getInstance();
+    this.initializeLocations();
+  }
+
+  private initializeLocations(): void {
+    this.locations = {
+      4988: {
+        id: 4988,
+        name: "Bribie Island",
+        region: "Moreton Bay",
+        state: "QLD",
+        postcode: "4507",
+        timeZone: "Australia/Brisbane",
+        lat: -27.0833,
+        lng: 153.1667,
+        typeId: 2,
+        towCompanies: this.towCompanyService.getTowCompaniesForLocation("Bribie"),
+      },
+      4990: {
+        id: 4990,
+        name: "Moreton Island",
+        region: "Moreton Bay",
+        state: "QLD",
+        postcode: "4025",
+        timeZone: "Australia/Brisbane",
+        lat: -27.1667,
+        lng: 153.4,
+        typeId: 2,
+        towCompanies: this.towCompanyService.getTowCompaniesForLocation("Moreton Island"),
+      },
+      4989: {
+        id: 4989,
+        name: "North Stradbroke Island",
+        region: "Redland City",
+        state: "QLD",
+        postcode: "4183",
+        timeZone: "Australia/Brisbane",
+        lat: -27.5,
+        lng: 153.4167,
+        typeId: 2,
+        towCompanies: this.towCompanyService.getTowCompaniesForLocation("Straddie"),
+      },
+    };
+  }
 
   async getLocation(locationId: number): Promise<Location> {
     // Simulate API delay
@@ -261,7 +275,7 @@ export class MockDataService {
     }
 
     // Generate tide points based on the calculated hours
-    highTideHours.forEach((hour, index) => {
+    highTideHours.forEach((hour) => {
       // Normalize hour to 0-23 range
       const normalizedHour = hour % 24;
       const tideDate = addHours(dayStart, normalizedHour);
@@ -289,7 +303,7 @@ export class MockDataService {
 
   extractCurrentWeather(
     combinedForecast: CombinedForecastData,
-    targetDateTime: Date
+    _targetDateTime: Date
   ): WeatherData | null {
     if (!combinedForecast?.forecasts?.weather?.days?.[0]?.entries?.[0]) {
       return null;
