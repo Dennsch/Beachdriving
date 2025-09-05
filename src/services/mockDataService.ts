@@ -8,15 +8,21 @@ import {
   DataSourceInfo,
 } from "../types";
 import { addHours, startOfDay } from "date-fns";
+import { TowCompanyService } from "./towCompanyService";
 
 export class MockDataService {
   private static instance: MockDataService;
+  private towCompanyService: TowCompanyService;
 
   public static getInstance(): MockDataService {
     if (!MockDataService.instance) {
       MockDataService.instance = new MockDataService();
     }
     return MockDataService.instance;
+  }
+
+  constructor() {
+    this.towCompanyService = TowCompanyService.getInstance();
   }
 
   private locations: { [key: number]: Location } = {
@@ -30,6 +36,7 @@ export class MockDataService {
       lat: -27.0833,
       lng: 153.1667,
       typeId: 2,
+      towCompanies: this.towCompanyService.getTowCompaniesForLocation("Bribie"),
     },
     4990: {
       id: 4990,
@@ -41,6 +48,7 @@ export class MockDataService {
       lat: -27.1667,
       lng: 153.4,
       typeId: 2,
+      towCompanies: this.towCompanyService.getTowCompaniesForLocation("Moreton Island"),
     },
     4989: {
       id: 4989,
@@ -52,6 +60,7 @@ export class MockDataService {
       lat: -27.5,
       lng: 153.4167,
       typeId: 2,
+      towCompanies: this.towCompanyService.getTowCompaniesForLocation("Straddie"),
     },
   };
 

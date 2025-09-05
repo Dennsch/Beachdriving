@@ -354,6 +354,121 @@ const LocationCard: React.FC<LocationCardProps> = ({
         </div>
       </div>
 
+      {/* Emergency Contacts - Tow Companies */}
+      {location.towCompanies && location.towCompanies.length > 0 && (
+        <div 
+          style={{
+            marginTop: "20px",
+            padding: "20px",
+            backgroundColor: "#fff3cd",
+            borderRadius: "10px",
+            border: "2px solid #ffc107",
+            boxShadow: "0 4px 8px rgba(255, 193, 7, 0.2)"
+          }}
+        >
+          <h3 
+            style={{
+              margin: "0 0 15px 0",
+              color: "#856404",
+              fontSize: "18px",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            🚛 Emergency Beach Recovery Services
+          </h3>
+          <div 
+            style={{
+              fontSize: "13px",
+              color: "#856404",
+              marginBottom: "15px",
+              fontStyle: "italic"
+            }}
+          >
+            If you get stuck on the beach, contact these local recovery services:
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {location.towCompanies.map((company, index) => (
+              <div 
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px 15px",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  borderRadius: "8px",
+                  border: "1px solid #ffc107"
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div 
+                    style={{
+                      fontWeight: "bold",
+                      color: "#495057",
+                      fontSize: "14px",
+                      marginBottom: "4px"
+                    }}
+                  >
+                    {company.name}
+                  </div>
+                  {company.description && (
+                    <div 
+                      style={{
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        fontStyle: "italic"
+                      }}
+                    >
+                      {company.description}
+                    </div>
+                  )}
+                </div>
+                <a 
+                  href={`tel:${company.phone.replace(/\s/g, '')}`}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#28a745",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    transition: "background-color 0.2s",
+                    marginLeft: "15px",
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#218838";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#28a745";
+                  }}
+                >
+                  📞 {company.phone}
+                </a>
+              </div>
+            ))}
+          </div>
+          <div 
+            style={{
+              marginTop: "15px",
+              fontSize: "12px",
+              color: "#856404",
+              textAlign: "center",
+              fontStyle: "italic"
+            }}
+          >
+            💡 Tip: Save these numbers in your phone before heading to the beach
+          </div>
+        </div>
+      )}
+
       {/* Weather Information */}
       {weather ? (
         <>

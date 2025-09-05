@@ -5,6 +5,7 @@ import LocationCard from "./components/LocationCard";
 import PayPalButton from "./components/PayPalButton";
 import { WeatherServiceFactory } from "./services/weatherServiceFactory";
 import { SafetyService } from "./services/safetyService";
+import { TowCompanyService } from "./services/towCompanyService";
 import { LocationData, Location } from "./types";
 import BannerImage from "./images/Banner.png";
 import "./App.css";
@@ -23,6 +24,7 @@ const App: React.FC = () => {
 
   const weatherService = WeatherServiceFactory.getWeatherService();
   const safetyService = SafetyService.getInstance();
+  const towCompanyService = TowCompanyService.getInstance();
 
   // Update cache stats after data fetching
   const updateCacheStats = useCallback(() => {
@@ -227,6 +229,7 @@ const App: React.FC = () => {
               lat: 0,
               lng: 0,
               typeId: 0,
+              towCompanies: towCompanyService.getTowCompaniesForLocation(locationName),
             } as Location,
             weather: null,
             tides: [],
