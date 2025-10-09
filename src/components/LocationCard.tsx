@@ -178,6 +178,14 @@ const LocationCard: React.FC<LocationCardProps> = ({
     return dateA.getTime() - dateB.getTime();
   });
 
+  // Helper function to get appropriate date text
+  const getDateText = () => {
+    if (isToday) {
+      return "Today";
+    }
+    return format(currentTime, "MMM d");
+  };
+
   return (
     <div className="location-card">
       <div
@@ -320,7 +328,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
       {/* Safe Driving Windows */}
       {safeWindows.length > 0 && (
         <div className="safe-windows">
-          <h3>Safe Driving Windows Today</h3>
+          <h3>Safe Driving Windows {getDateText()}</h3>
           <ul>
             {safeWindows.map((window, index) => (
               <li key={index}>
@@ -333,16 +341,16 @@ const LocationCard: React.FC<LocationCardProps> = ({
 
       {safeWindows.length === 0 && (
         <div className="safe-windows">
-          <h3>Safe Driving Windows Today</h3>
+          <h3>Safe Driving Windows {getDateText()}</h3>
           <p style={{ color: "#e74c3c", fontStyle: "italic" }}>
-            No safe driving windows available today due to tide conditions.
+            No safe driving windows available {isToday ? "today" : `on ${getDateText()}`} due to tide conditions.
           </p>
         </div>
       )}
 
       {/* Tide Information */}
       <div className="tide-info">
-        <h4>Today's Tides</h4>
+        <h4>{getDateText()}'s Tides</h4>
         <div className="tide-times">
           {sortedTides.map((tide, index) => (
             <div key={`${tide.type}-${index}`} className="tide-time">
