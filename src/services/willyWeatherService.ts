@@ -8,6 +8,7 @@ import {
   DataSourceInfo,
 } from "../types";
 import { LocalStorageCache } from "./localStorageCache";
+import { TowCompanyService } from "./towCompanyService";
 
 const API_KEY = "ZWY2Y2FlZmZlNzQ0NzZhYzI4ZDNiNG";
 // Use Vercel API routes for production, proxy for development
@@ -71,6 +72,7 @@ apiClient.interceptors.response.use(
 export class WillyWeatherService {
   private static instance: WillyWeatherService;
   private cache: LocalStorageCache;
+  private towCompanyService: TowCompanyService;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   public static getInstance(): WillyWeatherService {
@@ -82,6 +84,7 @@ export class WillyWeatherService {
 
   constructor() {
     this.cache = LocalStorageCache.getInstance();
+    this.towCompanyService = TowCompanyService.getInstance();
     console.log('🌐 WillyWeatherService initialized with persistent cache');
   }
 
@@ -354,7 +357,24 @@ export class WillyWeatherService {
       throw new Error("No weather or tide data found in combined forecast");
     }
 
+    // Enhance location data with tow company information
+    if (data.location) {
+      const locationName = this.getLocationNameById(data.location.id);
+      if (locationName) {
+        data.location.towCompanies = this.towCompanyService.getTowCompaniesForLocation(locationName);
+      }
+    }
+
     return data as CombinedForecastData;
+  }
+
+  private getLocationNameById(locationId: number): string | null {
+    for (const [name, id] of Object.entries(LOCATIONS)) {
+      if (id === locationId) {
+        return name;
+      }
+    }
+    return null;
   }
 
   private createWeatherData(

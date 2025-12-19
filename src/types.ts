@@ -1,3 +1,9 @@
+export interface TowCompany {
+  name: string;
+  phone: string;
+  description?: string;
+}
+
 export interface Location {
   id: number;
   name: string;
@@ -8,6 +14,7 @@ export interface Location {
   lat: number;
   lng: number;
   typeId: number;
+  towCompanies?: TowCompany[];
 }
 
 export interface WeatherData {
