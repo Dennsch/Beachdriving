@@ -17,20 +17,10 @@ const App: React.FC = () => {
   const [locationsData, setLocationsData] = useState<LocationData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [showCacheDebug, setShowCacheDebug] = useState<boolean>(false);
-  const [cacheStats, setCacheStats] = useState<any>(null);
   const [refreshingLocations, setRefreshingLocations] = useState<Set<string>>(new Set());
 
   const weatherService = WeatherServiceFactory.getWeatherService();
   const safetyService = SafetyService.getInstance();
-
-  // Update cache stats after data fetching
-  const updateCacheStats = useCallback(() => {
-    if (weatherService && typeof (weatherService as any).getCacheStats === 'function') {
-      const stats = (weatherService as any).getCacheStats();
-      setCacheStats(stats);
-    }
-  }, [weatherService]);
 
   // Refresh data for a specific location
   const refreshLocationData = useCallback(async (locationName: string) => {
@@ -122,9 +112,6 @@ const App: React.FC = () => {
         )
       );
 
-      // Update cache stats after successful refresh
-      updateCacheStats();
-      
       console.log(`🔄 Refreshed data for ${locationName}`);
     } catch (err) {
       console.error(`Error refreshing data for ${locationName}:`, err);
@@ -148,7 +135,7 @@ const App: React.FC = () => {
         return newSet;
       });
     }
-  }, [selectedDate, safetyService, weatherService, updateCacheStats, refreshingLocations]);
+  }, [selectedDate, safetyService, weatherService, refreshingLocations]);
 
   const fetchAllLocationData = useCallback(async () => {
     setLoading(true);
@@ -240,9 +227,6 @@ const App: React.FC = () => {
 
       const results = await Promise.all(locationDataPromises);
       setLocationsData(results);
-      
-      // Update cache stats after successful fetch
-      updateCacheStats();
     } catch (err) {
       console.error("Error fetching location data:", err);
       const errorMessage =
@@ -251,17 +235,14 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, safetyService, weatherService, updateCacheStats]);
+  }, [selectedDate, safetyService, weatherService]);
 
   // Initialize with current Queensland time
   useEffect(() => {
     const qldTime = utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE);
     setCurrentTime(qldTime);
     setSelectedDate(format(qldTime, "yyyy-MM-dd"));
-    
-    // Initial cache stats load
-    updateCacheStats();
-  }, [updateCacheStats]);
+  }, []);
 
   // Fetch data when date changes
   useEffect(() => {
@@ -280,17 +261,6 @@ const App: React.FC = () => {
     const qldTime = utcToZonedTime(newDate, QUEENSLAND_TIMEZONE);
     setCurrentTime(qldTime);
   };
-
-  // Cache management functions
-  const handleClearCache = () => {
-    if (weatherService && typeof (weatherService as any).clearCache === 'function') {
-      (weatherService as any).clearCache();
-      updateCacheStats();
-      console.log('🧹 Cache cleared manually');
-    }
-  };
-
-
 
   const isToday =
     selectedDate ===
@@ -426,70 +396,6 @@ const App: React.FC = () => {
             </button>
           </div> */}
         </header>
-
-        {/* Cache Debug Panel */}
-        {showCacheDebug && cacheStats && (
-          <div
-            style={{
-              backgroundColor: "rgba(0,0,0,0.8)",
-              color: "white",
-              padding: "15px",
-              borderRadius: "10px",
-              margin: "10px 0",
-              fontSize: "12px",
-              fontFamily: "monospace",
-            }}
-          >
-            <h4 style={{ margin: "0 0 10px 0", color: "#4CAF50" }}>
-              📊 Cache Statistics
-            </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div>
-                <strong>Total Entries:</strong> {cacheStats.totalEntries}
-              </div>
-              <div>
-                <strong>Expired Entries:</strong> {cacheStats.expiredEntries}
-              </div>
-              <div>
-                <strong>Storage Used:</strong> {Math.round(cacheStats.storageUsed / 1024)} KB
-              </div>
-              <div>
-                <strong>Memory Fallback:</strong> {cacheStats.memoryFallbackActive ? "Yes" : "No"}
-              </div>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-              <button
-                onClick={handleClearCache}
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor: "#e74c3c",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontSize: "11px",
-                  cursor: "pointer",
-                  marginRight: "10px",
-                }}
-              >
-                Clear Cache
-              </button>
-              <button
-                onClick={updateCacheStats}
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor: "#3498db",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontSize: "11px",
-                  cursor: "pointer",
-                }}
-              >
-                Refresh Stats
-              </button>
-            </div>
-          </div>
-        )}
 
         {error && (
           <div className="error">
