@@ -290,13 +290,6 @@ const App: React.FC = () => {
     }
   };
 
-  const toggleCacheDebug = () => {
-    setShowCacheDebug(!showCacheDebug);
-    if (!showCacheDebug) {
-      updateCacheStats();
-    }
-  };
-
 
 
   const isToday =
