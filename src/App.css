@@ -352,7 +352,7 @@
 }
 
 .status-box__img img {
-  height: 68%;
+  height: 68px;
   object-fit: cover;
   display: block;
 }
