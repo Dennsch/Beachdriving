@@ -13,6 +13,23 @@ interface LocationCardProps {
   isToday?: boolean;
 }
 
+const getStatusEmoji = (summary: string): string => {
+  const text = (summary || "").toLowerCase();
+  if (text.includes("thunder") || text.includes("storm"))
+    return "⛈️";
+  if (text.includes("rain") || text.includes("shower") || text.includes("drizzle"))
+    return "🌦️";
+  if (text.includes("cloud") || text.includes("overcast"))
+    return "☁️";
+  if (text.includes("fog") || text.includes("mist"))
+    return "🌫️";
+  if (text.includes("wind"))
+    return "💨";
+  if (text.includes("sun") || text.includes("clear") || text.includes("fine"))
+    return "🌤️";
+  return "🌤️";
+};
+
 const LocationCard: React.FC<LocationCardProps> = ({
   locationData,
   currentTime,
@@ -30,122 +47,35 @@ const LocationCard: React.FC<LocationCardProps> = ({
     dataSource,
   } = locationData;
 
-  // Helper function to format data source info
   const formatDataSource = () => {
     if (!dataSource) return null;
 
     const fetchTime = new Date(dataSource.fetchedAt);
     const isRecent = Date.now() - dataSource.fetchedAt < 10 * 60 * 1000; // 10 minutes
+    const time = format(fetchTime, "HH:mm");
 
     if (dataSource.isLive) {
       return {
-        icon: "🟢",
         label: "Live Data",
-        time: format(fetchTime, "HH:mm"),
-        color: "#27ae60",
-        bgColor: "#d5f4e6",
-      };
-    } else if (dataSource.isFallback) {
-      return {
-        icon: "🟡",
-        label: "Cached Data (Network Issue)",
-        time: format(fetchTime, "HH:mm 'on' MMM d"),
-        color: "#f39c12",
-        bgColor: "#fef9e7",
-      };
-    } else {
-      return {
-        icon: isRecent ? "🟢" : "🔵",
-        label: isRecent ? "Recent Cache" : "Cached Data",
-        time: format(fetchTime, "HH:mm"),
-        color: isRecent ? "#27ae60" : "#3498db",
-        bgColor: isRecent ? "#d5f4e6" : "#ebf3fd",
+        time,
+        isLive: true,
       };
     }
+    if (dataSource.isFallback) {
+      return {
+        label: "Cached Data",
+        time,
+        isLive: false,
+      };
+    }
+    return {
+      label: isRecent ? "Recent Cache" : "Cached Data",
+      time,
+      isLive: false,
+    };
   };
 
   const dataSourceInfo = formatDataSource();
-
-  if (error) {
-    return (
-      <div className="location-card">
-        <h2>{location.name}</h2>
-
-        {/* Error State with Negative Image */}
-        <div className="safety-status unsafe">
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <img
-              src={NegativeImage}
-              alt="Data unavailable"
-              style={{
-                width: "80px",
-                height: "80px",
-                objectFit: "contain",
-                opacity: 0.7,
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "18px",
-                  marginBottom: "8px",
-                }}
-              >
-                DATA UNAVAILABLE
-              </div>
-              <div style={{ fontSize: "14px", fontWeight: "normal" }}>
-                We couldn't fetch current conditions for this location
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Details */}
-        <div
-          style={{
-            marginTop: "15px",
-            padding: "15px",
-            backgroundColor: "#fff5f5",
-            borderRadius: "8px",
-            border: "1px solid #fed7d7",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              color: "#c53030",
-              marginBottom: "8px",
-              fontWeight: "bold",
-            }}
-          >
-            ⚠️ Unable to Load Beach Conditions
-          </div>
-          <div
-            style={{
-              fontSize: "13px",
-              color: "#742a2a",
-              lineHeight: "1.4",
-            }}
-          >
-            {error}
-          </div>
-          <div
-            style={{
-              fontSize: "12px",
-              color: "#9c4221",
-              marginTop: "10px",
-              fontStyle: "italic",
-            }}
-          >
-            Please check your internet connection and try refreshing the page.
-            For safety, avoid beach driving when conditions are unknown.
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const formatTideTime = (dateTime: string) => {
     return format(new Date(dateTime), "HH:mm");
@@ -164,21 +94,21 @@ const LocationCard: React.FC<LocationCardProps> = ({
   };
 
   const todaysTides = getTodaysTides();
-  // Sort tides chronologically by time (create a new array to avoid mutating original)
   const sortedTides = [...todaysTides].sort((a, b) => {
     const dateA = new Date(a.dateTime);
     const dateB = new Date(b.dateTime);
-    
-    // Handle invalid dates gracefully
+
     if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
-      console.warn('Invalid tide dateTime found:', { a: a.dateTime, b: b.dateTime });
-      return 0; // Keep original order for invalid dates
+      console.warn("Invalid tide dateTime found:", {
+        a: a.dateTime,
+        b: b.dateTime,
+      });
+      return 0;
     }
-    
+
     return dateA.getTime() - dateB.getTime();
   });
 
-  // Helper function to get appropriate date text
   const getDateText = () => {
     if (isToday) {
       return "Today";
@@ -186,313 +116,227 @@ const LocationCard: React.FC<LocationCardProps> = ({
     return format(currentTime, "MMM d");
   };
 
-  return (
-    <div className="location-card">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "15px",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>{location.name}</h2>
+  const statusContent = {
+    safe: {
+      label: "SAFE TO DRIVE",
+      text: "Beach driving conditions are currently safe",
+      image: PositiveImage,
+      imageAlt: "Safe to drive",
+    },
+    hurry: {
+      label: "HURRY UP!",
+      text: "It's getting late if you want to drive you need to hurry",
+      image: NeutralImage,
+      imageAlt: "Hurry up if you want to drive",
+    },
+    unsafe: {
+      label: "UNSAFE TO DRIVE",
+      text: "Too close to high tide - avoid beach driving",
+      image: NegativeImage,
+      imageAlt: "Unsafe to drive",
+    },
+  };
 
-        {/* Data Source Indicator */}
-        {dataSourceInfo && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 12px",
-              backgroundColor: dataSourceInfo.bgColor,
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: "500",
-              color: dataSourceInfo.color,
-              border: `1px solid ${dataSourceInfo.color}30`,
-              flexShrink: 0,
-              marginLeft: "10px",
-            }}
-          >
-            <span style={{ fontSize: "10px" }}>{dataSourceInfo.icon}</span>
-            <span>{dataSourceInfo.label}</span>
-            <span style={{ fontSize: "11px", opacity: 0.8 }}>
-              {dataSourceInfo.time}
-            </span>
-            {onRefresh && (
-              <button
-                onClick={() => !isRefreshing && onRefresh(location.name)}
-                disabled={isRefreshing}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: isRefreshing ? "not-allowed" : "pointer",
-                  padding: "2px",
-                  marginLeft: "4px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "12px",
-                  color: dataSourceInfo.color,
-                  opacity: isRefreshing ? 0.5 : 0.7,
-                  transition: "opacity 0.2s, background-color 0.2s",
-                  animation: isRefreshing ? "spin 1s linear infinite" : "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isRefreshing) {
-                    e.currentTarget.style.opacity = "1";
-                    e.currentTarget.style.backgroundColor = `${dataSourceInfo.color}20`;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isRefreshing) {
-                    e.currentTarget.style.opacity = "0.7";
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }
-                }}
-                title={
-                  isRefreshing
-                    ? "Refreshing..."
-                    : "Refresh data for this location"
-                }
-              >
-                🔄
-              </button>
-            )}
+  if (error) {
+    return (
+      <section className="location-card location-card--error">
+        <div className="error-card">
+          <div className="error-card__img">
+            <img src={NegativeImage} alt="Data unavailable" />
           </div>
+          <div className="status-box__label" style={{ color: "#991b1b" }}>
+            DATA UNAVAILABLE
+            <div className="status-box__text" style={{ color: "#b91c1c" }}>
+              We couldn't fetch current conditions for this location
+            </div>
+          </div>
+        </div>
+
+        <div className="error-card__details">
+          <div>
+            ⚠️ <strong>Unable to Load Beach Conditions</strong>
+          </div>
+          <div>{error}</div>
+          <div className="error-card__hint">
+            Please check your internet connection and try refreshing the page.
+            For safety, avoid beach driving when conditions are unknown.
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const renderLiveBadge = () => {
+    if (!dataSourceInfo) return null;
+    return (
+      <div
+        className="live-badge"
+        style={dataSourceInfo.isLive ? undefined : { opacity: 0.85 }}
+        onClick={(e) => e.preventDefault()}
+      >
+        <span className="live-badge__dot" />
+        <span>
+          {dataSourceInfo.label} {dataSourceInfo.time}
+        </span>
+        {onRefresh && (
+          <button
+            className={`live-badge__refresh ${
+              isRefreshing ? "spin" : ""
+            }`}
+            onClick={() => !isRefreshing && onRefresh(location.name)}
+            disabled={isRefreshing}
+            title={
+              isRefreshing
+                ? "Refreshing..."
+                : "Refresh data for this location"
+            }
+            aria-label={`Refresh data for ${location.name}`}
+          >
+            <svg
+              className="live-badge__icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+              />
+            </svg>
+          </button>
         )}
       </div>
+    );
+  };
 
-      {/* Safety Status - Only show if not today */}
+  return (
+    <section className="location-card">
+      <div className="location-card__header">
+        <h2 className="location-card__title">{location.name}</h2>
+        {renderLiveBadge()}
+      </div>
+
       {isToday && (
         <div
-          className={`safety-status ${
+          className={`status-box ${
             safetyStatus === "safe"
               ? "safe"
               : safetyStatus === "hurry"
-              ? "neutral"
+              ? "hurry"
               : "unsafe"
           }`}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <div className="status-box__img">
             <img
-              src={
-                safetyStatus === "safe"
-                  ? PositiveImage
-                  : safetyStatus === "hurry"
-                  ? NeutralImage
-                  : NegativeImage
-              }
-              alt={
-                safetyStatus === "safe"
-                  ? "Safe to drive"
-                  : safetyStatus === "hurry"
-                  ? "Hurry up if you want to drive"
-                  : "Unsafe to drive"
-              }
-              style={{
-                height: "100px",
-                objectFit: "contain",
-                flexShrink: 0,
-              }}
+              src={statusContent[safetyStatus].image}
+              alt={statusContent[safetyStatus].imageAlt}
             />
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "18px",
-                  marginBottom: "8px",
-                }}
-              >
-                {safetyStatus === "safe"
-                  ? "SAFE TO DRIVE"
-                  : safetyStatus === "hurry"
-                  ? "HURRY UP!"
-                  : "UNSAFE TO DRIVE"}
-              </div>
-              <div style={{ fontSize: "14px", fontWeight: "normal" }}>
-                {safetyStatus === "safe"
-                  ? "Beach driving conditions are currently safe"
-                  : safetyStatus === "hurry"
-                  ? "It's getting late if you want to drive you need to hurry"
-                  : "Too close to high tide - avoid beach driving"}
-              </div>
+          </div>
+          <div className="status-box__body">
+            <div className="status-box__label">
+              {statusContent[safetyStatus].label}
+            </div>
+            <div className="status-box__text">
+              {statusContent[safetyStatus].text}
             </div>
           </div>
         </div>
       )}
 
-      {/* Safe Driving Windows */}
-      {safeWindows.length > 0 && (
-        <div className="safe-windows">
-          <h3>Safe Driving Windows {getDateText()}</h3>
-          <ul>
+      <div className="safe-windows">
+        <div className="safe-windows__title">
+          Safe Driving Windows {getDateText()}
+        </div>
+        {safeWindows.length > 0 ? (
+          <ul className="safe-windows__list">
             {safeWindows.map((window, index) => (
-              <li key={index}>
+              <li key={index} className="safe-window-pill">
                 {window.start} - {window.end} ({window.duration})
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {safeWindows.length === 0 && (
-        <div className="safe-windows">
-          <h3>Safe Driving Windows {getDateText()}</h3>
-          <p style={{ color: "#e74c3c", fontStyle: "italic" }}>
-            No safe driving windows available {isToday ? "today" : `on ${getDateText()}`} due to tide conditions.
+        ) : (
+          <p className="safe-windows__empty">
+            No safe driving windows available{" "}
+            {isToday ? "today" : `on ${getDateText()}`} due to tide conditions.
           </p>
-        </div>
-      )}
-
-      {/* Tide Information */}
-      <div className="tide-info">
-        <h4>{getDateText()}'s Tides</h4>
-        <div className="tide-times">
-          {sortedTides.map((tide, index) => (
-            <div key={`${tide.type}-${index}`} className="tide-time">
-              <div className="type">{tide.type === "high" ? "High Tide" : "Low Tide"}</div>
-              <div className="time">{formatTideTime(tide.dateTime)}</div>
-              <div className="height">{formatTideHeight(tide.height)}</div>
-            </div>
-          ))}
-        </div>
+        )}
       </div>
 
-      {/* Weather Information */}
+      {sortedTides.length > 0 && (
+        <div>
+          <div className="tide-block__label">{getDateText()}'s Tides</div>
+          <div className="tide-grid">
+            {sortedTides.map((tide, index) => (
+              <div key={`${tide.type}-${index}`} className="tide-cell">
+                <span className="tide-cell__type">
+                  {tide.type === "high" ? (
+                    <svg
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      aria-hidden="true"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="flip"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      aria-hidden="true"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  )}
+                  {tide.type === "high" ? "HIGH TIDE" : "LOW TIDE"}
+                </span>
+                <span className="tide-cell__time">
+                  {formatTideTime(tide.dateTime)}
+                </span>
+                <span className="tide-cell__height">
+                  {formatTideHeight(tide.height)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {weather ? (
         <>
-          {/* Enhanced Weather Summary */}
           {weather.summary && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "15px",
-                backgroundColor: "#f0f8ff",
-                borderRadius: "8px",
-                fontSize: "14px",
-                color: "#2c3e50",
-                border: "1px solid #e3f2fd",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "8px",
-                }}
-              >
-                <span style={{ fontSize: "18px" }}>🌤️</span>
+            <p className="current-weather">
+              <span className="current-weather__emoji">
+                {getStatusEmoji(weather.summary)}
+              </span>
+              <span>
                 <strong>Current Conditions:</strong> {weather.summary}
-              </div>
-
-              {/* Felt temperature note */}
-              {Math.abs(weather.apparentTemperature - weather.temperature) >
-                2 && (
-                <div
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "12px",
-                    color: "#666",
-                    fontStyle: "italic",
-                  }}
-                >
-                  <span style={{ fontSize: "14px" }}>🌡️</span>
-                  {weather.apparentTemperature > weather.temperature
-                    ? ` Feels warmer due to humidity and wind conditions`
-                    : ` Feels cooler due to wind chill`}
-                </div>
-              )}
-            </div>
+              </span>
+            </p>
           )}
 
-          {/* Weather Summary */}
-          <div className="weather-info">
-            <div className="weather-item">
-              <div className="label">Temperature</div>
-              <div className="value">
-                {weather.minTemperature !== weather.maxTemperature 
-                  ? `${Math.round(weather.minTemperature)}°C - ${Math.round(weather.maxTemperature)}°C`
-                  : `${Math.round(weather.temperature)}°C`
-                }
-              </div>
+          <div className="temp-box">
+            <div className="temp-box__label">TEMPERATURE</div>
+            <div className="temp-box__value">
+              {weather.minTemperature !== weather.maxTemperature
+                ? `${Math.round(weather.minTemperature)}°C - ${Math.round(
+                    weather.maxTemperature
+                  )}°C`
+                : `${Math.round(weather.temperature)}°C`}
             </div>
-            {Math.abs(weather.apparentTemperature - weather.temperature) >
-              2 && (
-              <div className="weather-item">
-                <div className="label">Feels Like</div>
-                <div className="value">
-                  {Math.round(weather.apparentTemperature)}°C
-                </div>
-              </div>
-            )}
-            {weather.rainfallAmount && weather.rainfallAmount.probability && (
-              <div className="weather-item">
-                <div className="label">Rain Chance</div>
-                <div className="value">
-                  {weather.rainfallAmount.probability}%
-                </div>
-              </div>
-            )}
-            {weather.rainfallAmount &&
-            weather.rainfallAmount.probability > 0 ? (
-              <div className="weather-item">
-                <div className="label">Rainfall</div>
-                <div className="value">
-                  {weather.rainfallAmount.startRange !== null &&
-                  weather.rainfallAmount.endRange !== null
-                    ? `${weather.rainfallAmount.startRange}-${weather.rainfallAmount.endRange}mm`
-                    : weather.rainfallAmount.endRange !== null
-                    ? `${weather.rainfallAmount.rangeDivide}${weather.rainfallAmount.endRange}mm`
-                    : "Possible"}
-                </div>
-              </div>
-            ) : (
-              weather.windSpeed > 0 && (
-                <div className="weather-item">
-                  <div className="label">Wind</div>
-                  <div className="value">
-                    {Math.round(weather.windSpeed)} km/h
-                  </div>
-                </div>
-              )
-            )}
           </div>
         </>
       ) : (
-        <div
-          style={{
-            marginTop: "15px",
-            padding: "15px",
-            backgroundColor: "#fff8e1",
-            borderRadius: "8px",
-            fontSize: "14px",
-            color: "#f57c00",
-            border: "1px solid #ffcc02",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "18px" }}>⚠️</span>
-            <strong>Weather data temporarily unavailable</strong>
+        <div className="weather-unavailable">
+          <div>
+            ⚠️ <strong>Weather data temporarily unavailable</strong>
           </div>
-          <div style={{ marginTop: "5px", fontSize: "12px", opacity: 0.8 }}>
-            Tide and safety information is still accurate
-          </div>
+          <p>Tide and safety information is still accurate</p>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

@@ -244,6 +244,14 @@ const App: React.FC = () => {
     setSelectedDate(format(qldTime, "yyyy-MM-dd"));
   }, []);
 
+  // Tick the live Queensland clock every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime((prev) => new Date(prev.getTime() + 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Fetch data when date changes
   useEffect(() => {
     if (selectedDate) {
@@ -267,134 +275,42 @@ const App: React.FC = () => {
     format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), "yyyy-MM-dd");
 
   return (
-    <div className="App" style={{ position: "relative" }}>
-      {/* Background Banner Image */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          zIndex: -1,
-          overflow: "hidden",
-        }}
-      >
+    <div className="App">
+      <div className="app-viewport">
         <img
+          className="banner-image"
           src={BannerImage}
-          alt="Queensland Beach Driving Safety"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            objectPosition: "center top",
-            display: "block",
-          }}
+          alt="Aussie Beach 4x4 Conditions Header Banner"
         />
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))",
-          }}
-        />
-      </div>
 
-      <div className="container" style={{ position: "relative", zIndex: 1 }}>
-        <header
-          className="header"
-          style={{
-            textAlign: "center",
-            padding: "40px 25px",
-            color: "white",
-          }}
-        >
-
-          <div
-            className="date-picker-container"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              padding: "15px 20px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-              marginBottom: "15px",
-              display: "inline-block",
-            }}
-          >
-            <label
-              htmlFor="date-picker"
-              style={{
-                color: "#2c3e50",
-                fontWeight: "bold",
-                marginBottom: "8px",
-                display: "block",
-              }}
-            >
-              Select Date for Beach Conditions:
-            </label>
+        <header className="date-header">
+          <h1 className="date-header__title">
+            Select Date for Beach Conditions:
+          </h1>
+          <div className="date-header__input-wrap">
             <input
-              id="date-picker"
+              className="date-header__input"
+              aria-label="Select Date"
               type="date"
               value={selectedDate}
               onChange={handleDateChange}
               min={format(new Date(), "yyyy-MM-dd")}
               max={format(endOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd")}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "5px",
-                border: "1px solid #ddd",
-                fontSize: "16px",
-                width: "100%",
-                maxWidth: "200px",
-              }}
             />
-            {isToday && (
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#27ae60",
-                  marginTop: "5px",
-                  fontWeight: "bold",
-                }}
-              >
-                Showing current conditions
-              </div>
-            )}
-            
           </div>
-
-          <div
-            style={{
-              fontSize: "14px",
-              color: "rgba(255,255,255,0.9)",
-              textShadow: "1px 1px 2px rgba(0,0,0,0.7)",
-            }}
-          >
-            Current Queensland Time:{" "}
-            {format(utcToZonedTime(new Date(), QUEENSLAND_TIMEZONE), "PPpp")}
+          {isToday && (
+            <p className="current-conditions">
+              <span className="current-conditions__dot" />
+              Showing current conditions
+            </p>
+          )}
+          <div className="qld-time">
+            <span className="qld-time__dot" />
+            <span>
+              Current Queensland Time:{" "}
+              {format(currentTime, "MMM d, yyyy, h:mm:ss a")}
+            </span>
           </div>
-          
-          {/* Cache Debug Toggle */}
-          {/* <div style={{ marginTop: "10px" }}>
-            <button
-              onClick={toggleCacheDebug}
-              style={{
-                padding: "5px 10px",
-                backgroundColor: "rgba(255,255,255,0.2)",
-                color: "white",
-                border: "1px solid rgba(255,255,255,0.3)",
-                borderRadius: "5px",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
-            >
-              {showCacheDebug ? "Hide" : "Show"} Cache Info
-            </button>
-          </div> */}
         </header>
 
         {error && (
@@ -409,58 +325,33 @@ const App: React.FC = () => {
             <p>Fetching live weather and tide data for Queensland beaches</p>
             <div style={{ marginTop: "20px" }}>
               <div
+                className="spin"
                 style={{
                   width: "50px",
                   height: "50px",
-                  border: "3px solid rgba(255,255,255,0.3)",
-                  borderTop: "3px solid white",
+                  border: "3px solid rgba(12,74,110,0.15)",
+                  borderTop: "3px solid #0ea5e9",
                   borderRadius: "50%",
-                  animation: "spin 1s linear infinite",
                   margin: "0 auto",
                 }}
               ></div>
             </div>
           </div>
         ) : locationsData.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "40px 20px",
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              borderRadius: "15px",
-              margin: "20px 0",
-            }}
-          >
+          <div className="no-data">
             <div style={{ fontSize: "48px", marginBottom: "20px" }}>🌊</div>
-            <h3 style={{ color: "#e74c3c", marginBottom: "15px" }}>
-              No Beach Data Available
-            </h3>
-            <p
-              style={{ color: "#7f8c8d", fontSize: "16px", lineHeight: "1.5" }}
-            >
+            <h3>No Beach Data Available</h3>
+            <p>
               We're unable to fetch current beach conditions at this time.
               <br />
               Please check your internet connection and try again.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              style={{
-                marginTop: "20px",
-                padding: "12px 24px",
-                backgroundColor: "#3498db",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "14px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
+            <button onClick={() => window.location.reload()}>
               Refresh Page
             </button>
           </div>
         ) : (
-          <div className="locations-grid">
+          <div className="location-card-list">
             {locationsData.map((locationData, index) => (
               <LocationCard
                 key={`${locationData.location.name}-${index}`}
@@ -474,21 +365,12 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "20px",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            borderRadius: "15px",
-            fontSize: "14px",
-            color: "#2c3e50",
-            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <h3 style={{ marginTop: "0", color: "#2980b9" }}>
-            ℹ️ Beach Driving Safety Information
+        <article className="safety-info">
+          <h3 className="safety-info__title">
+            <span className="safety-info__badge">ℹ</span>
+            Beach Driving Safety Information
           </h3>
-          <ul style={{ paddingLeft: "20px" }}>
+          <ul className="safety-info__list">
             <li>
               <strong>Safe Driving Rule:</strong> Avoid driving on the beach
               within 2 hours before or after high tide
@@ -502,35 +384,28 @@ const App: React.FC = () => {
               sand is firmer
             </li>
             <li>
-              <strong>Always:</strong> Check local conditions and follow park
-              regulations
+              <strong>Always:</strong> Check current local conditions and follow
+              park regulations
             </li>
             <li>
               <strong>Emergency:</strong> Carry recovery equipment and inform
               others of your plans
             </li>
           </ul>
-          <p style={{ marginBottom: "0", fontStyle: "italic" }}>
+          <p className="safety-info__disclaimer">
             <strong>Disclaimer:</strong> This tool provides guidance only.
             Always check current local conditions, weather warnings, and park
             regulations before beach driving. Drive at your own risk.
           </p>
-        </div>
+        </article>
 
         {/* Buy Me a Coffee PayPal Button */}
-        <PayPalButton 
-          amount="5.00" 
-          currency="USD" 
-          description="Support Beach Driving Safety App ☕" 
+        <PayPalButton
+          amount="5.00"
+          currency="USD"
+          description="Support Beach Driving Safety App ☕"
         />
       </div>
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };
