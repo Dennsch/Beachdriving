@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { LocationData } from "../types";
 import { format } from "date-fns";
 import PositiveImage from "../images/Positive.png";
@@ -30,6 +30,76 @@ const getStatusEmoji = (summary: string): string => {
   return "🌤️";
 };
 
+interface EmergencyContact {
+  name: string;
+  number: string;
+  landline?: string;
+}
+
+interface EmergencyInfo {
+  key: string;
+  name: string;
+  contacts: EmergencyContact[];
+}
+
+const EMERGENCY_LOCATIONS: EmergencyInfo[] = [
+  {
+    key: "bribie",
+    name: "Bribie Island",
+    contacts: [
+      { name: "Bribie Island Towing Service", number: "0419 779 799" },
+      { name: "Brisbane Towing Service", number: "0466 890 373" },
+    ],
+  },
+  {
+    key: "strad",
+    name: "North Stradbroke Island (Minjerribah)",
+    contacts: [
+      { name: "Stradbroke Island Towing / Rob", number: "0418 734 456" },
+      {
+        name: "RESQ YOU Batteries & Roadside Assistance",
+        number: "0428 288 128",
+      },
+    ],
+  },
+  {
+    key: "moreton",
+    name: "Moreton Island (Mulgumpin)",
+    contacts: [
+      {
+        name: "Moreton Island Recovery - Lindsay",
+        number: "0414 949 876",
+        landline: "07 3408 3545",
+      },
+      {
+        name: "Moreton Island Recovery - John",
+        number: "0475 563 642",
+        landline: "07 3408 3930",
+      },
+    ],
+  },
+];
+
+const GENERAL_EMERGENCY_CONTACTS: EmergencyContact[] = [
+  { name: "Emergency (Police / Fire / Ambulance)", number: "000" },
+  { name: "QLD SES - Flood & Storm Assistance", number: "132 500" },
+  { name: "PoliceLink (non-emergency)", number: "131 444" },
+];
+
+const getEmergencyInfo = (locationName: string): EmergencyInfo => {
+  const normalized = locationName.toLowerCase();
+  const match = EMERGENCY_LOCATIONS.find((entry) =>
+    normalized.includes(entry.key)
+  );
+  return (
+    match ?? {
+      key: "general",
+      name: locationName,
+      contacts: GENERAL_EMERGENCY_CONTACTS,
+    }
+  );
+};
+
 const LocationCard: React.FC<LocationCardProps> = ({
   locationData,
   currentTime,
@@ -37,6 +107,8 @@ const LocationCard: React.FC<LocationCardProps> = ({
   isRefreshing = false,
   isToday = true,
 }) => {
+  const [showEmergency, setShowEmergency] = useState<boolean>(false);
+
   const {
     location,
     weather,
@@ -46,6 +118,8 @@ const LocationCard: React.FC<LocationCardProps> = ({
     error,
     dataSource,
   } = locationData;
+
+  const emergencyInfo = getEmergencyInfo(location.name);
 
   const formatDataSource = () => {
     if (!dataSource) return null;
@@ -336,6 +410,98 @@ const LocationCard: React.FC<LocationCardProps> = ({
           <p>Tide and safety information is still accurate</p>
         </div>
       )}
+
+      <div className="emergency">
+        <button
+          type="button"
+          className="emergency__toggle"
+          onClick={() => setShowEmergency((prev) => !prev)}
+          aria-expanded={showEmergency}
+          aria-controls={`emergency-${location.name}`}
+        >
+          <span className="emergency__title">
+            <svg
+              className="emergency__icon"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 15.352V16.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Emergency Recovery Numbers
+          </span>
+          <svg
+            className={`emergency__chevron${showEmergency ? " open" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+        <div
+          id={`emergency-${location.name}`}
+          className={`emergency__content${showEmergency ? " open" : ""}`}
+        >
+          <div className="emergency__inner">
+            <p className="emergency__note">
+              Save these before you hit the sand. In an emergency, always call
+              000 first.
+            </p>
+            <ul className="emergency__list">
+              {emergencyInfo.contacts.map((contact) => (
+                <li className="emergency__item" key={contact.name}>
+                  <a
+                    href={`tel:${contact.number.replace(/\s+/g, "")}`}
+                    title={`Call ${contact.name}`}
+                  >
+                    <span className="emergency__item-name">{contact.name}</span>
+                    <strong className="emergency__item-number">
+                      {contact.number}
+                    </strong>
+                  </a>
+                  {contact.landline && (
+                    <a
+                      href={`tel:${contact.landline.replace(/\s+/g, "")}`}
+                      title={`Call ${contact.name} (landline)`}
+                    >
+                      <span className="emergency__item-name">
+                        {contact.name} (landline)
+                      </span>
+                      <strong className="emergency__item-number">
+                        {contact.landline}
+                      </strong>
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div className="emergency__footer">
+              <span className="emergency__footer-label">General emergency:</span>
+              <div className="emergency__chips">
+                {GENERAL_EMERGENCY_CONTACTS.map((contact) => (
+                  <a
+                    className="emergency__chip"
+                    key={contact.name}
+                    href={`tel:${contact.number.replace(/\s+/g, "")}`}
+                    title={contact.name}
+                  >
+                    <span>{contact.number}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };
