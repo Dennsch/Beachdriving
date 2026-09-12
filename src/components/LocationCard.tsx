@@ -453,8 +453,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         >
           <div className="emergency__inner">
             <p className="emergency__note">
-              Save these before you hit the sand. In an emergency, always call
-              000 first.
+              Save these before you hit the sand. 
             </p>
             <ul className="emergency__list">
               {emergencyInfo.contacts.map((contact) => (
@@ -484,21 +483,6 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 </li>
               ))}
             </ul>
-            <div className="emergency__footer">
-              <span className="emergency__footer-label">General emergency:</span>
-              <div className="emergency__chips">
-                {GENERAL_EMERGENCY_CONTACTS.map((contact) => (
-                  <a
-                    className="emergency__chip"
-                    key={contact.name}
-                    href={`tel:${contact.number.replace(/\s+/g, "")}`}
-                    title={contact.name}
-                  >
-                    <span>{contact.number}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
