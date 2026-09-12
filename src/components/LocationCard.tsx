@@ -33,14 +33,72 @@ const getStatusEmoji = (summary: string): string => {
 interface EmergencyContact {
   name: string;
   number: string;
+  landline?: string;
 }
 
-const EMERGENCY_CONTACTS: EmergencyContact[] = [
+interface EmergencyInfo {
+  key: string;
+  name: string;
+  contacts: EmergencyContact[];
+}
+
+const EMERGENCY_LOCATIONS: EmergencyInfo[] = [
+  {
+    key: "bribie",
+    name: "Bribie Island",
+    contacts: [
+      { name: "Bribie Island Towing Service", number: "0419 779 799" },
+      { name: "Brisbane Towing Service", number: "0466 890 373" },
+    ],
+  },
+  {
+    key: "strad",
+    name: "North Stradbroke Island (Minjerribah)",
+    contacts: [
+      { name: "Stradbroke Island Towing / Rob", number: "0418 734 456" },
+      {
+        name: "RESQ YOU Batteries & Roadside Assistance",
+        number: "0428 288 128",
+      },
+    ],
+  },
+  {
+    key: "moreton",
+    name: "Moreton Island (Mulgumpin)",
+    contacts: [
+      {
+        name: "Moreton Island Recovery - Lindsay",
+        number: "0414 949 876",
+        landline: "07 3408 3545",
+      },
+      {
+        name: "Moreton Island Recovery - John",
+        number: "0475 563 642",
+        landline: "07 3408 3930",
+      },
+    ],
+  },
+];
+
+const GENERAL_EMERGENCY_CONTACTS: EmergencyContact[] = [
   { name: "Emergency (Police / Fire / Ambulance)", number: "000" },
   { name: "QLD SES - Flood & Storm Assistance", number: "132 500" },
-  { name: "RACQ Roadside Assistance", number: "13 11 11" },
   { name: "PoliceLink (non-emergency)", number: "131 444" },
 ];
+
+const getEmergencyInfo = (locationName: string): EmergencyInfo => {
+  const normalized = locationName.toLowerCase();
+  const match = EMERGENCY_LOCATIONS.find((entry) =>
+    normalized.includes(entry.key)
+  );
+  return (
+    match ?? {
+      key: "general",
+      name: locationName,
+      contacts: GENERAL_EMERGENCY_CONTACTS,
+    }
+  );
+};
 
 const LocationCard: React.FC<LocationCardProps> = ({
   locationData,
@@ -60,6 +118,8 @@ const LocationCard: React.FC<LocationCardProps> = ({
     error,
     dataSource,
   } = locationData;
+
+  const emergencyInfo = getEmergencyInfo(location.name);
 
   const formatDataSource = () => {
     if (!dataSource) return null;
@@ -397,20 +457,48 @@ const LocationCard: React.FC<LocationCardProps> = ({
               000 first.
             </p>
             <ul className="emergency__list">
-              {EMERGENCY_CONTACTS.map((contact) => (
+              {emergencyInfo.contacts.map((contact) => (
                 <li className="emergency__item" key={contact.name}>
                   <a
                     href={`tel:${contact.number.replace(/\s+/g, "")}`}
-                    title={`Call ${contact.number}`}
+                    title={`Call ${contact.name}`}
                   >
                     <span className="emergency__item-name">{contact.name}</span>
                     <strong className="emergency__item-number">
                       {contact.number}
                     </strong>
                   </a>
+                  {contact.landline && (
+                    <a
+                      href={`tel:${contact.landline.replace(/\s+/g, "")}`}
+                      title={`Call ${contact.name} (landline)`}
+                    >
+                      <span className="emergency__item-name">
+                        {contact.name} (landline)
+                      </span>
+                      <strong className="emergency__item-number">
+                        {contact.landline}
+                      </strong>
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
+            <div className="emergency__footer">
+              <span className="emergency__footer-label">General emergency:</span>
+              <div className="emergency__chips">
+                {GENERAL_EMERGENCY_CONTACTS.map((contact) => (
+                  <a
+                    className="emergency__chip"
+                    key={contact.name}
+                    href={`tel:${contact.number.replace(/\s+/g, "")}`}
+                    title={contact.name}
+                  >
+                    <span>{contact.number}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
